@@ -73,11 +73,11 @@ export const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white mb-4">24/7 Helpline</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white mb-4">24/7 Help Desk</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3 text-slate-300">
                 <Phone className="w-4 h-4 text-red-500 shrink-0" />
-                <span>+91 (800) RED-TRIP</span>
+                <span className="font-bold">+91 (800) RED-TRIP</span>
               </div>
               <div className="flex items-center gap-3 text-slate-300">
                 <Mail className="w-4 h-4 text-red-500 shrink-0" />
@@ -85,7 +85,15 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-start gap-3 text-slate-300">
                 <MapPin className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <span>MG Road, Indiranagar, Bangalore, KA 560038</span>
+                <span>100ft Road, Indiranagar, Bangalore, KA 560038</span>
+              </div>
+              <div className="pt-2 flex flex-col gap-1.5 text-xs">
+                <Link to="/helpdesk" className="text-red-400 font-bold hover:underline flex items-center gap-1">
+                  → Open Help Desk & FAQs
+                </Link>
+                <Link to="/contact" className="text-slate-400 hover:text-white transition-colors">
+                  → Submit Support Ticket
+                </Link>
               </div>
             </div>
           </div>

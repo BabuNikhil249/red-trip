@@ -61,12 +61,15 @@ export interface Driver {
 
 export interface AvailableTrip {
   id: string;
+  title: string;
+  region: 'Karnataka' | 'All India';
   from: string;
   to: string;
   date: string;
   departureTime: string;
   arrivalTime: string;
   estimatedDuration: string;
+  durationDaysNights?: string;
   vehicleName: string;
   vehicleType: VehicleCategory;
   driverName: string;
@@ -80,6 +83,11 @@ export interface AvailableTrip {
   routeDescription: string;
   cancellationPolicy: string;
   status: 'Scheduled' | 'In Transit' | 'Completed' | 'Cancelled';
+  image?: string;
+  categoryTag?: string;
+  inclusions?: string[];
+  highlights?: string[];
+  itinerary?: { day: number; title: string; details: string }[];
 }
 
 export interface CustomerInfo {

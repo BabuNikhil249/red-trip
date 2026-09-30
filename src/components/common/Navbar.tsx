@@ -109,7 +109,16 @@ export const Navbar: React.FC = () => {
                 isActive('/available-trips') ? 'text-red-600 bg-red-50' : 'text-slate-700 hover:text-red-600 hover:bg-slate-50'
               }`}
             >
-              Available Trips
+              Trip Packages
+            </Link>
+
+            <Link
+              to="/helpdesk"
+              className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                isActive('/helpdesk') || isActive('/contact') ? 'text-red-600 bg-red-50' : 'text-slate-700 hover:text-red-600 hover:bg-slate-50'
+              }`}
+            >
+              Help Desk
             </Link>
 
             <Link
@@ -229,7 +238,14 @@ export const Navbar: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
             className="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-800 hover:bg-slate-50"
           >
-            Available Trips
+            Trip Packages
+          </Link>
+          <Link
+            to="/helpdesk"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-800 hover:bg-slate-50"
+          >
+            Help Desk & Contact
           </Link>
           <Link
             to="/my-bookings"

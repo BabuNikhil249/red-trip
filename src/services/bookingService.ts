@@ -53,11 +53,42 @@ export const bookingService = {
     return drivers.filter((d) => d.available);
   },
 
-  // 3. Available Scheduled Trips API
-  async getAvailableTrips(filters?: { from?: string; to?: string; date?: string }): Promise<AvailableTrip[]> {
+  // 3. Available Scheduled Trip Packages API
+  async getAvailableTrips(filters?: {
+    from?: string;
+    to?: string;
+    date?: string;
+    region?: 'Karnataka' | 'All India' | 'All';
+    categoryTag?: string;
+    query?: string;
+  }): Promise<AvailableTrip[]> {
     await new Promise((resolve) => setTimeout(resolve, 150));
-    const trips = loadStorage<AvailableTrip[]>(TRIPS_KEY, INITIAL_AVAILABLE_TRIPS);
+    let trips = loadStorage<AvailableTrip[]>(TRIPS_KEY, INITIAL_AVAILABLE_TRIPS);
+    
+    // Auto-sync new mock package structure if stored trips are legacy
+    if (!trips.length || !trips.some((t) => t.region)) {
+      trips = INITIAL_AVAILABLE_TRIPS;
+      saveStorage(TRIPS_KEY, trips);
+    }
+
     let list = [...trips];
+
+    if (filters?.region && filters.region !== 'All') {
+      list = list.filter((t) => t.region === filters.region);
+    }
+    if (filters?.categoryTag && filters.categoryTag !== 'All') {
+      list = list.filter((t) => t.categoryTag === filters.categoryTag);
+    }
+    if (filters?.query) {
+      const q = filters.query.toLowerCase();
+      list = list.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.from.toLowerCase().includes(q) ||
+          t.to.toLowerCase().includes(q) ||
+          (t.categoryTag && t.categoryTag.toLowerCase().includes(q))
+      );
+    }
     if (filters?.from) {
       list = list.filter((t) => t.from.toLowerCase().includes(filters.from!.toLowerCase()));
     }

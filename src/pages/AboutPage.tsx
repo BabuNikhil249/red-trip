@@ -48,54 +48,8 @@ export const AboutPage: React.FC = () => {
   );
 };
 
+import { HelpDeskPage } from './HelpDeskPage';
+
 export const ContactPage: React.FC = () => {
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-black text-slate-900">Contact RED TRIP Support</h1>
-        <p className="text-sm text-slate-600">Our 24/7 travel desk team is ready to assist you.</p>
-      </div>
-
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Your Name
-            </label>
-            <input
-              type="text"
-              placeholder="Enter your name"
-              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Phone / Email
-            </label>
-            <input
-              type="text"
-              placeholder="Contact details"
-              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Message / Inquiry
-            </label>
-            <textarea
-              rows={4}
-              placeholder="How can we help you?"
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
-            ></textarea>
-          </div>
-        </div>
-
-        <button className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-md shadow-red-600/20">
-          Send Message
-        </button>
-      </div>
-    </div>
-  );
+  return <HelpDeskPage />;
 };

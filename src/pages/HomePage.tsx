@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBookingContext } from '../context/BookingContext';
-import { BookingTypeSelector } from '../components/booking/BookingTypeSelector';
-import { BookingForm } from '../components/booking/BookingForm';
+import { BookingTypeSelector, type SelectorCategory } from '../components/booking/BookingTypeSelector';
+import { VehicleCard } from '../components/booking/VehicleCard';
+import { DriverCard } from '../components/booking/DriverCard';
 import { TripCard } from '../components/booking/TripCard';
 import { bookingService } from '../services/bookingService';
-import type { AvailableTrip } from '../types';
+import type { Vehicle, Driver, AvailableTrip } from '../types';
 import { POPULAR_ROUTES } from '../data/mockData';
 import {
   ShieldCheck,
@@ -15,28 +16,77 @@ import {
   ArrowRight,
   Clock,
   Sparkles,
+  Car,
+  Compass,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { activeBookingType, setActiveBookingType, setSelectedTrip } = useBookingContext();
-  const [featuredTrips, setFeaturedTrips] = useState<AvailableTrip[]>([]);
+  const {
+    setActiveBookingType,
+    setSelectedVehicle,
+    setSelectedDriver,
+    setSelectedTrip,
+  } = useBookingContext();
+
+  const [activeCategory, setActiveCategory] = useState<SelectorCategory>('ALL');
+
+  const [withDriverVehicles, setWithDriverVehicles] = useState<Vehicle[]>([]);
+  const [selfDriveVehicles, setSelfDriveVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [tripPackages, setTripPackages] = useState<AvailableTrip[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    bookingService.getAvailableTrips().then((trips) => {
-      setFeaturedTrips(trips.slice(0, 3));
-    });
+    setLoading(true);
+    Promise.all([
+      bookingService.getVehicles(),
+      bookingService.getSelfDriveVehicles(),
+      bookingService.getDrivers(),
+      bookingService.getAvailableTrips(),
+    ])
+      .then(([vWithDriver, vSelf, driverList, packages]) => {
+        setWithDriverVehicles(vWithDriver);
+        setSelfDriveVehicles(vSelf);
+        setDrivers(driverList);
+        setTripPackages(packages);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  const handleSelectVehicleWithDriver = (v: Vehicle) => {
+    setSelectedVehicle(v);
+    setActiveBookingType('WITH_DRIVER');
+    navigate('/booking/summary');
+  };
+
+  const handleSelectSelfDrive = (v: Vehicle) => {
+    setSelectedVehicle(v);
+    setActiveBookingType('SELF_DRIVE');
+    navigate('/booking/summary');
+  };
+
+  const handleSelectDriver = (d: Driver) => {
+    setSelectedDriver(d);
+    setActiveBookingType('DRIVER_ONLY');
+    navigate('/booking/summary');
+  };
+
+  const handleSelectTrip = (t: AvailableTrip) => {
+    setSelectedTrip(t);
+    setActiveBookingType('AVAILABLE_TRIP');
+    navigate(`/trip/${t.id}`);
+  };
 
   return (
     <div className="space-y-16 pb-16">
       {/* HERO SECTION */}
-      <section className="relative pt-8 pb-16 md:pt-16 md:pb-24 overflow-hidden rounded-b-3xl bg-slate-900 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-red-600/30 via-slate-900/90 to-slate-950 pointer-events-none"></div>
+      <section className="relative pt-8 pb-16 md:pt-16 md:pb-24 overflow-hidden rounded-b-3xl bg-slate-950 text-white border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-red-600/30 via-slate-950/90 to-slate-950 pointer-events-none"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-4 mb-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest backdrop-blur-md animate-pulse">
               <Sparkles className="w-3.5 h-3.5" /> India's Premier Travel & Rental Platform
             </div>
@@ -46,16 +96,235 @@ export const HomePage: React.FC = () => {
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
-              Rent a vehicle with a driver, rent a vehicle without a driver, hire a driver for your own vehicle, or choose from available scheduled trips.
+              Select any category below to view all available cars, chauffeurs, and tour packages across Karnataka and India.
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto space-y-4">
+          {/* 5 CATEGORY SELECTOR TABS */}
+          <div className="max-w-5xl mx-auto">
             <BookingTypeSelector
-              activeType={activeBookingType}
-              onSelect={(type) => setActiveBookingType(type)}
+              activeType={activeCategory}
+              onSelect={(type) => setActiveCategory(type)}
             />
-            <BookingForm />
+          </div>
+
+          {/* LIVE OFFERINGS DISPLAY CONTAINER */}
+          <div className="max-w-7xl mx-auto pt-6">
+            {loading ? (
+              <div className="text-center py-12 space-y-3">
+                <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                  Loading available travel offerings...
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-12 animate-in fade-in duration-300">
+                {/* 1. ALL SERVICES (DEFAULT DISPLAY ALL) */}
+                {activeCategory === 'ALL' && (
+                  <div className="space-y-12">
+                    {/* Featured Trip Packages */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 className="text-xl font-black text-white flex items-center gap-2">
+                          <Compass className="w-5 h-5 text-red-500" />
+                          Trip Packages (Karnataka & All India)
+                        </h3>
+                        <button
+                          onClick={() => navigate('/available-trips')}
+                          className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1"
+                        >
+                          View All Packages →
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {tripPackages.slice(0, 3).map((pkg) => (
+                          <TripCard
+                            key={pkg.id}
+                            trip={pkg}
+                            onBookSeat={handleSelectTrip}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Vehicles + Chauffeur */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 className="text-xl font-black text-white flex items-center gap-2">
+                          <Car className="w-5 h-5 text-red-500" />
+                          Rent Vehicle + Chauffeur
+                        </h3>
+                        <button
+                          onClick={() => navigate('/rent-with-driver')}
+                          className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1"
+                        >
+                          View All Fleet →
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {withDriverVehicles.slice(0, 3).map((vehicle) => (
+                          <VehicleCard
+                            key={vehicle.id}
+                            vehicle={vehicle}
+                            onSelect={handleSelectVehicleWithDriver}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Self Drive Cars */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 className="text-xl font-black text-white flex items-center gap-2">
+                          <ShieldCheck className="w-5 h-5 text-blue-400" />
+                          Self Drive Rentals (Without Driver)
+                        </h3>
+                        <button
+                          onClick={() => navigate('/self-drive')}
+                          className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                        >
+                          View All Cars →
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {selfDriveVehicles.slice(0, 3).map((vehicle) => (
+                          <VehicleCard
+                            key={vehicle.id}
+                            vehicle={vehicle}
+                            isSelfDrive={true}
+                            onSelect={handleSelectSelfDrive}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Verified Chauffeurs */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 className="text-xl font-black text-white flex items-center gap-2">
+                          <UserCheck className="w-5 h-5 text-emerald-400" />
+                          Hire Professional Chauffeur
+                        </h3>
+                        <button
+                          onClick={() => navigate('/hire-driver')}
+                          className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                        >
+                          View All Drivers →
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {drivers.slice(0, 3).map((driver) => (
+                          <DriverCard
+                            key={driver.id}
+                            driver={driver}
+                            onSelect={handleSelectDriver}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. VEHICLE + DRIVER TAB */}
+                {activeCategory === 'WITH_DRIVER' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                        <Car className="w-6 h-6 text-red-500" />
+                        Available Vehicles with Professional Chauffeur ({withDriverVehicles.length})
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {withDriverVehicles.map((vehicle) => (
+                        <VehicleCard
+                          key={vehicle.id}
+                          vehicle={vehicle}
+                          onSelect={handleSelectVehicleWithDriver}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. SELF DRIVE TAB */}
+                {activeCategory === 'SELF_DRIVE' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                        <ShieldCheck className="w-6 h-6 text-blue-400" />
+                        Self-Drive Rentals (Without Driver) ({selfDriveVehicles.length})
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {selfDriveVehicles.map((vehicle) => (
+                        <VehicleCard
+                          key={vehicle.id}
+                          vehicle={vehicle}
+                          isSelfDrive={true}
+                          onSelect={handleSelectSelfDrive}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. HIRE DRIVER TAB */}
+                {activeCategory === 'DRIVER_ONLY' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                        <UserCheck className="w-6 h-6 text-emerald-400" />
+                        Hire Professional Chauffeur for Your Car ({drivers.length})
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {drivers.map((driver) => (
+                        <DriverCard
+                          key={driver.id}
+                          driver={driver}
+                          onSelect={handleSelectDriver}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. TRIP PACKAGES TAB */}
+                {activeCategory === 'AVAILABLE_TRIP' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                        <Compass className="w-6 h-6 text-red-500" />
+                        Karnataka & All Over India Trip Packages ({tripPackages.length})
+                      </h2>
+                      <button
+                        onClick={() => navigate('/available-trips')}
+                        className="text-xs font-bold text-red-400 hover:text-red-300"
+                      >
+                        Explore Packages Page →
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {tripPackages.map((pkg) => (
+                        <TripCard
+                          key={pkg.id}
+                          trip={pkg}
+                          onBookSeat={handleSelectTrip}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -125,40 +394,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* FEATURED SCHEDULED TRIPS PREVIEW */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-slate-50 py-12 rounded-3xl border border-slate-200/80">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-red-600">
-              Shared Travel
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Available Scheduled Trips
-            </h2>
-          </div>
-          <button
-            onClick={() => navigate('/available-trips')}
-            className="inline-flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
-          >
-            Browse All Trips <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {featuredTrips.map((trip) => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              onBookSeat={(t) => {
-                setSelectedTrip(t);
-                navigate(`/trip/${t.id}`);
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* POPULAR ROUTES CAROUSEL / GRID */}
+      {/* POPULAR ROUTES Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">

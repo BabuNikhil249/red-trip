@@ -294,16 +294,16 @@ export const BookingForm: React.FC = () => {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LocationInput
-              label="From City"
+              label="From City / Pickup"
               value={searchParams.pickupLocation}
               onChange={(val) => setSearchParams((prev) => ({ ...prev, pickupLocation: val }))}
-              placeholder="Origin city"
+              placeholder="Origin city (e.g. Bangalore, Delhi, Kochi)"
             />
             <LocationInput
-              label="To Destination"
+              label="To Destination / Region"
               value={searchParams.dropLocation}
               onChange={(val) => setSearchParams((prev) => ({ ...prev, dropLocation: val }))}
-              placeholder="Destination city"
+              placeholder="Destination (e.g. Coorg, Mysore, Goa, Kashmir)"
               iconColor="text-amber-600"
             />
           </div>
@@ -311,7 +311,7 @@ export const BookingForm: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Travel Date
+                Preferred Travel Date
               </label>
               <input
                 type="date"
@@ -323,7 +323,7 @@ export const BookingForm: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Seats Needed
+                Travelers / Seats Needed
               </label>
               <select
                 value={searchParams.passengers}
@@ -332,9 +332,9 @@ export const BookingForm: React.FC = () => {
                 }
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
               >
-                {[1, 2, 3, 4, 5, 6].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => (
                   <option key={n} value={n}>
-                    {n} {n === 1 ? 'Seat' : 'Seats'}
+                    {n} {n === 1 ? 'Traveler' : 'Travelers'}
                   </option>
                 ))}
               </select>
@@ -348,7 +348,9 @@ export const BookingForm: React.FC = () => {
           type="submit"
           className="w-full py-4 bg-gradient-to-r from-red-600 via-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base md:text-lg rounded-2xl shadow-xl shadow-red-600/25 transition-all duration-200 flex items-center justify-center gap-2 group active:scale-[0.99]"
         >
-          <span>Book Now</span>
+          <span>
+            {activeBookingType === 'AVAILABLE_TRIP' ? 'Explore Trip Packages' : 'Book Now'}
+          </span>
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

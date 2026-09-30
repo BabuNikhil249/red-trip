@@ -17,6 +17,7 @@ import { MyBookingsPage } from './pages/MyBookingsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage, SignupPage } from './pages/LoginPage';
 import { AboutPage, ContactPage } from './pages/AboutPage';
+import { HelpDeskPage } from './pages/HelpDeskPage';
 
 // Admin Portal Pages
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -58,6 +59,7 @@ export function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/helpdesk" element={<HelpDeskPage />} />
 
               {/* Admin Portal Routes */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
