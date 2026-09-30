@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Booking } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { Calendar, MapPin, Car, User } from 'lucide-react';
+import { Calendar, MapPin, Car, User, Building2 } from 'lucide-react';
 
 interface BookingCardProps {
   booking: Booking;
@@ -22,6 +22,13 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewDetails
         return 'Scheduled Seat Trip';
     }
   };
+
+  const agencyName =
+    booking.agencyName ||
+    booking.vehicle?.agencyName ||
+    booking.driver?.agencyName ||
+    booking.trip?.agencyName ||
+    'M/S Apoorva Travels';
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 p-6 shadow-sm hover:shadow-md transition-all duration-200 space-y-4">
@@ -55,6 +62,11 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking, onViewDetails
         </div>
 
         <div className="md:col-span-4 space-y-2 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">
+            <Building2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+            <span className="truncate">{agencyName}</span>
+          </div>
+
           <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
             <Calendar className="w-4 h-4 text-slate-400" />
             <span>

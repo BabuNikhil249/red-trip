@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Driver } from '../../types';
-import { Star, Award, Globe, ShieldCheck } from 'lucide-react';
+import { Star, Award, Globe, ShieldCheck, Building2 } from 'lucide-react';
 
 interface DriverCardProps {
   driver: Driver;
@@ -38,6 +38,13 @@ export const DriverCard: React.FC<DriverCardProps> = ({ driver, onSelect, isSele
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               {driver.experienceYears} Years Chauffeur Experience
             </p>
+
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="flex items-center gap-1 text-[11px] font-extrabold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                <Building2 className="w-3 h-3 text-red-600" />
+                {driver.agencyName || 'M/S Apoorva Travels'}
+              </span>
+            </div>
 
             <div className="flex items-center gap-3 text-xs text-slate-600 mt-2">
               <span className="flex items-center gap-1">

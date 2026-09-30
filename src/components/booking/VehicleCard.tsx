@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Vehicle } from '../../types';
-import { Users, Wind, Star, ShieldCheck, Fuel, Gauge, Check } from 'lucide-react';
+import { Users, Wind, Star, ShieldCheck, Fuel, Gauge, Check, Building2 } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -49,6 +49,13 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Travelling Agency Tag */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-xs">
+            <Building2 className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span className="text-slate-400 text-[10px] uppercase font-bold">Agency:</span>
+            <span className="text-slate-100 truncate">{vehicle.agencyName || 'M/S Apoorva Travels'}</span>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium">
               <Users className="w-3.5 h-3.5 text-slate-500" />

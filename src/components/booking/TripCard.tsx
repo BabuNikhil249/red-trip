@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AvailableTrip } from '../../types';
-import { Clock, MapPin, Star, CheckCircle2 } from 'lucide-react';
+import { Clock, MapPin, Star, CheckCircle2, Building2 } from 'lucide-react';
 
 interface TripCardProps {
   trip: AvailableTrip;
@@ -64,6 +64,13 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onBookSeat }) => {
 
         {/* Content Body */}
         <div className="p-5 space-y-4">
+          {/* Travelling Agency Tag */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-xs">
+            <Building2 className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span className="text-slate-400 text-[10px] uppercase font-bold">Agency:</span>
+            <span className="text-slate-100 truncate">{trip.agencyName || 'M/S Apoorva Travels'}</span>
+          </div>
+
           {/* Route details */}
           <div className="flex items-center justify-between text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
             <div className="flex items-center gap-1.5 min-w-0">

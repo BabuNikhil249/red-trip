@@ -15,6 +15,7 @@ import {
   Calendar,
   Sparkles,
   ShieldCheck,
+  Building2,
 } from 'lucide-react';
 
 export const TripDetailPage: React.FC = () => {
@@ -104,11 +105,17 @@ export const TripDetailPage: React.FC = () => {
           </div>
 
           <div className="absolute bottom-6 left-6 right-6 text-white space-y-2">
-            {trip.categoryTag && (
-              <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-950/70 px-3 py-1 rounded-full border border-red-500/30 inline-block backdrop-blur-md">
-                {trip.categoryTag}
+            <div className="flex items-center gap-2">
+              {trip.categoryTag && (
+                <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-950/70 px-3 py-1 rounded-full border border-red-500/30 backdrop-blur-md">
+                  {trip.categoryTag}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-white bg-slate-900/90 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md">
+                <Building2 className="w-3.5 h-3.5 text-red-500" />
+                {trip.agencyName || 'M/S Apoorva Travels'}
               </span>
-            )}
+            </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight">
               {trip.title || `${trip.from} to ${trip.to} Tour Package`}
             </h1>

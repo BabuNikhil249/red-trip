@@ -1,10 +1,11 @@
-import type { Vehicle, Driver, AvailableTrip, Booking, BookingStatus } from '../types';
-import { INITIAL_VEHICLES, INITIAL_DRIVERS, INITIAL_AVAILABLE_TRIPS, INITIAL_BOOKINGS } from '../data/mockData';
+import type { Vehicle, Driver, AvailableTrip, Booking, BookingStatus, TravelAgency } from '../types';
+import { INITIAL_VEHICLES, INITIAL_DRIVERS, INITIAL_AVAILABLE_TRIPS, INITIAL_BOOKINGS, INITIAL_TRAVEL_AGENCIES } from '../data/mockData';
 
 const VEHICLES_KEY = 'red_trip_vehicles_v1';
 const DRIVERS_KEY = 'red_trip_drivers_v1';
 const TRIPS_KEY = 'red_trip_trips_v1';
 const BOOKINGS_KEY = 'red_trip_bookings_v1';
+const AGENCIES_KEY = 'red_trip_agencies_v1';
 
 // Helpers
 const loadStorage = <T>(key: string, fallback: T): T => {
@@ -140,7 +141,49 @@ export const adminService = {
     return updated;
   },
 
-  // 5. METRICS & REVENUE REPORT
+  // 5. TRAVEL AGENCIES CRUD
+  async getAllAgencies(): Promise<TravelAgency[]> {
+    await new Promise((res) => setTimeout(res, 150));
+    return loadStorage<TravelAgency[]>(AGENCIES_KEY, INITIAL_TRAVEL_AGENCIES);
+  },
+
+  async addAgency(agency: Omit<TravelAgency, 'id' | 'createdAt'>): Promise<TravelAgency> {
+    await new Promise((res) => setTimeout(res, 200));
+    const agencies = loadStorage<TravelAgency[]>(AGENCIES_KEY, INITIAL_TRAVEL_AGENCIES);
+    const newId = `ag-${Math.floor(100 + Math.random() * 900)}`;
+    const newAgency: TravelAgency = {
+      ...agency,
+      id: newId,
+      createdAt: new Date().toISOString(),
+      totalBookingsCount: 0,
+      totalBilledAmount: 0,
+    };
+    const updated = [newAgency, ...agencies];
+    saveStorage(AGENCIES_KEY, updated);
+    return newAgency;
+  },
+
+  async updateAgency(id: string, updates: Partial<TravelAgency>): Promise<TravelAgency> {
+    await new Promise((res) => setTimeout(res, 200));
+    const agencies = loadStorage<TravelAgency[]>(AGENCIES_KEY, INITIAL_TRAVEL_AGENCIES);
+    const index = agencies.findIndex((a) => a.id === id);
+    if (index === -1) throw new Error(`Agency ${id} not found`);
+
+    const updated = { ...agencies[index], ...updates };
+    agencies[index] = updated;
+    saveStorage(AGENCIES_KEY, agencies);
+    return updated;
+  },
+
+  async deleteAgency(id: string): Promise<boolean> {
+    await new Promise((res) => setTimeout(res, 200));
+    let agencies = loadStorage<TravelAgency[]>(AGENCIES_KEY, INITIAL_TRAVEL_AGENCIES);
+    agencies = agencies.filter((a) => a.id !== id);
+    saveStorage(AGENCIES_KEY, agencies);
+    return true;
+  },
+
+  // 6. METRICS & REVENUE REPORT
   async getAdminMetrics() {
     await new Promise((res) => setTimeout(res, 150));
     const vehicles = loadStorage<Vehicle[]>(VEHICLES_KEY, INITIAL_VEHICLES);

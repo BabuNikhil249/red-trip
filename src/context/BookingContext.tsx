@@ -26,6 +26,8 @@ interface BookingContextType {
   setUser: (user: AuthUser) => void;
   loginAsAdmin: () => void;
   loginAsUser: (name: string, email: string, phone: string) => void;
+  loginAsAgency: (agencyName?: string, email?: string, phone?: string) => void;
+  loginAsDriver: (driverName?: string, phone?: string, cabNo?: string) => void;
   logout: () => void;
 }
 
@@ -45,6 +47,25 @@ const DEFAULT_SEARCH: SearchFilterState = {
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
+const USER_AUTH_KEY = 'red_trip_auth_user_v1';
+
+const loadSavedUser = (): AuthUser => {
+  try {
+    const data = localStorage.getItem(USER_AUTH_KEY);
+    if (data) return JSON.parse(data);
+  } catch (err) {
+    console.error('Failed to load user session', err);
+  }
+  return {
+    id: '',
+    name: '',
+    email: '',
+    phone: '',
+    role: 'USER',
+    isLoggedIn: false,
+  };
+};
+
 export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeBookingType, setActiveBookingType] = useState<BookingType>('WITH_DRIVER');
   const [searchParams, setSearchParams] = useState<SearchFilterState>(DEFAULT_SEARCH);
@@ -56,14 +77,20 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const [user, setUser] = useState<AuthUser>({
-    id: 'u-101',
-    name: 'Rajesh Sharma',
-    email: 'rajesh.sharma@example.com',
-    phone: '+91 98765 43210',
-    role: 'USER',
-    isLoggedIn: true,
-  });
+  const [user, setUserState] = useState<AuthUser>(loadSavedUser);
+
+  const setUser = (newUser: AuthUser) => {
+    setUserState(newUser);
+    try {
+      if (newUser.isLoggedIn) {
+        localStorage.setItem(USER_AUTH_KEY, JSON.stringify(newUser));
+      } else {
+        localStorage.removeItem(USER_AUTH_KEY);
+      }
+    } catch (err) {
+      console.error('Failed to save user session', err);
+    }
+  };
 
   const resetDraft = () => {
     setSelectedVehicle(null);
@@ -90,6 +117,30 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       email: email || 'user@example.com',
       phone: phone || '+91 98765 43210',
       role: 'USER',
+      isLoggedIn: true,
+    });
+  };
+
+  const loginAsAgency = (agencyName?: string, email?: string, phone?: string) => {
+    setUser({
+      id: 'ag-101',
+      name: agencyName || 'M/S Apoorva',
+      email: email || 'apoorva.travels@example.com',
+      phone: phone || '+91 98714 18158',
+      role: 'AGENCY',
+      agencyName: agencyName || 'M/S Apoorva',
+      isLoggedIn: true,
+    });
+  };
+
+  const loginAsDriver = (driverName?: string, phone?: string, cabNo?: string) => {
+    setUser({
+      id: 'd-driver-vikas',
+      name: driverName || 'Vikas U',
+      email: 'vikas.driver@redtrip.in',
+      phone: phone || '+91 98123 45678',
+      role: 'DRIVER',
+      driverCabNo: cabNo || 'KA 05 AM 2969',
       isLoggedIn: true,
     });
   };
@@ -141,6 +192,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setUser,
         loginAsAdmin,
         loginAsUser,
+        loginAsAgency,
+        loginAsDriver,
         logout,
       }}
     >

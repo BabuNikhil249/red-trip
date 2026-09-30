@@ -28,7 +28,7 @@ export const AdminLoginPage: React.FC = () => {
             System Administration
           </span>
           <h2 className="text-2xl font-black">RED TRIP Control Portal</h2>
-          <p className="text-xs text-slate-400">Sign in to manage fleet vehicles, drivers, trips, and bookings.</p>
+          <p className="text-xs text-slate-400">Sign in to register and manage travel agencies and B2B partners.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

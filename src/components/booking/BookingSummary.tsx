@@ -1,7 +1,7 @@
 import React from 'react';
 import type { BookingType, Vehicle, Driver, AvailableTrip, CustomerInfo } from '../../types';
 import { PriceBreakdown } from './PriceBreakdown';
-import { MapPin, User, Phone, Mail, Shield, ArrowLeft } from 'lucide-react';
+import { MapPin, User, Phone, Mail, Shield, ArrowLeft, Building2 } from 'lucide-react';
 
 interface BookingSummaryProps {
   bookingType: BookingType;
@@ -64,6 +64,8 @@ export const BookingSummaryComponent: React.FC<BookingSummaryProps> = ({
   const taxAmount = Math.round(subtotal * 0.05);
   const totalAmount = subtotal + taxAmount + securityDeposit;
 
+  const agencyName = vehicle?.agencyName || driver?.agencyName || trip?.agencyName || 'M/S Apoorva Travels';
+
   const getBookingTypeLabel = () => {
     switch (bookingType) {
       case 'WITH_DRIVER':
@@ -98,6 +100,19 @@ export const BookingSummaryComponent: React.FC<BookingSummaryProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Itinerary & Customer Info */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Agency Banner Badge */}
+          <div className="flex items-center gap-3 bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400">
+                Operating Travel Agency
+              </span>
+              <h4 className="text-base font-black text-white">{agencyName}</h4>
+            </div>
+          </div>
+
           <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
               <MapPin className="w-4 h-4 text-red-600" /> Travel Details

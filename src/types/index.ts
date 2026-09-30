@@ -10,7 +10,7 @@ export type TransmissionType = 'Manual' | 'Automatic';
 
 export type BookingStatus = 'Upcoming' | 'Active' | 'Completed' | 'Cancelled';
 
-export type UserRole = 'USER' | 'ADMIN';
+export type UserRole = 'USER' | 'ADMIN' | 'DRIVER' | 'AGENCY';
 
 export interface AuthUser {
   id: string;
@@ -19,6 +19,93 @@ export interface AuthUser {
   phone: string;
   role: UserRole;
   isLoggedIn: boolean;
+  agencyName?: string;
+  driverCabNo?: string;
+}
+
+export interface DutySlipData {
+  logSheetNo: string;
+  agencyName: string;
+  guestName: string;
+  guestMobile: string;
+  reportingTo?: string;
+  cabType: string;
+  cabNo: string;
+  driverName: string;
+  driverPhone: string;
+  particulars: 'Local' | 'Out Station';
+  date: string;
+  openingKm: number;
+  openingTime: string;
+  closingKm: number;
+  closingTime: string;
+  totalKm: number;
+  totalHours: number;
+  detailsOfJourney: string;
+  fastTag: number;
+  parking: number;
+  tax: number;
+  batta: number;
+  advance: number;
+  others: number;
+  ratePerKm: number;
+  baseFare: number;
+  totalAmount: number;
+  guestSignature?: string;
+  updatedAt: string;
+}
+
+export interface TravelAgency {
+  id: string;
+  agencyName: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  gstin?: string;
+  address: string;
+  commissionRate: number;
+  status: 'Active' | 'Inactive';
+  totalBookingsCount?: number;
+  totalBilledAmount?: number;
+  createdAt: string;
+}
+
+export interface PickupPoint {
+  id: string;
+  orderNumber: number;
+  location: string;
+  pickupTime: string;
+  passengerName: string;
+  passengerPhone: string;
+  flightNo?: string;
+  otp: string;
+  status: 'Pending' | 'PickedUp';
+  pickedUpAt?: string;
+}
+
+export interface AgencyBooking {
+  id: string;
+  agencyId: string;
+  agencyName: string;
+  travelDate: string;
+  pickupTime: string;
+  flightNo?: string;
+  travelerName: string;
+  travelerPhone: string;
+  pickupPoints: PickupPoint[];
+  pickup1?: string;
+  pickup2?: string;
+  dropLocation: string;
+  vehicleTypeRequested: string;
+  assignedCabNo?: string;
+  assignedDriverId?: string;
+  assignedDriverName?: string;
+  assignedDriverPhone?: string;
+  status: 'Pending' | 'Assigned' | 'In Progress' | 'Duty Slip Updated' | 'Billed' | 'Completed';
+  createdAt: string;
+  notes?: string;
+  dutySlip?: DutySlipData;
+  isCustomerWebsiteBooking?: boolean;
 }
 
 export interface Vehicle {
@@ -41,6 +128,7 @@ export interface Vehicle {
   image: string;
   features: string[];
   available: boolean;
+  agencyName?: string;
 }
 
 export interface Driver {
@@ -57,6 +145,7 @@ export interface Driver {
   available: boolean;
   phone: string;
   bio: string;
+  agencyName?: string;
 }
 
 export interface AvailableTrip {
@@ -88,6 +177,7 @@ export interface AvailableTrip {
   inclusions?: string[];
   highlights?: string[];
   itinerary?: { day: number; title: string; details: string }[];
+  agencyName?: string;
 }
 
 export interface CustomerInfo {
@@ -127,6 +217,7 @@ export interface Booking {
   status: BookingStatus;
   createdAt: string;
   notes?: string;
+  agencyName?: string;
 }
 
 export interface SearchFilterState {

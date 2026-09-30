@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { BookingProvider } from './context/BookingContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
@@ -19,13 +19,13 @@ import { LoginPage, SignupPage } from './pages/LoginPage';
 import { AboutPage, ContactPage } from './pages/AboutPage';
 import { HelpDeskPage } from './pages/HelpDeskPage';
 
+// Agency & Driver Portal Pages
+import { AgencyDashboardPage } from './pages/agency/AgencyDashboardPage';
+import { DriverDashboardPage } from './pages/driver/DriverDashboardPage';
+
 // Admin Portal Pages
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
-import { AdminFleetPage } from './pages/admin/AdminFleetPage';
-import { AdminDriversPage } from './pages/admin/AdminDriversPage';
-import { AdminTripsPage } from './pages/admin/AdminTripsPage';
-import { AdminBookingsPage } from './pages/admin/AdminBookingsPage';
+import { AdminAgenciesPage } from './pages/admin/AdminAgenciesPage';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -61,13 +61,15 @@ export function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/helpdesk" element={<HelpDeskPage />} />
 
-              {/* Admin Portal Routes */}
+              {/* Agency & Driver Routes */}
+              <Route path="/agency" element={<AgencyDashboardPage />} />
+              <Route path="/driver" element={<DriverDashboardPage />} />
+
+              {/* Admin Portal Routes (Solely Travel Agencies Management) */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/admin/fleet" element={<AdminFleetPage />} />
-              <Route path="/admin/drivers" element={<AdminDriversPage />} />
-              <Route path="/admin/trips" element={<AdminTripsPage />} />
-              <Route path="/admin/bookings" element={<AdminBookingsPage />} />
+              <Route path="/admin" element={<Navigate to="/admin/agencies" replace />} />
+              <Route path="/admin/agencies" element={<AdminAgenciesPage />} />
+              <Route path="/admin/*" element={<Navigate to="/admin/agencies" replace />} />
             </Routes>
           </main>
           <Footer />

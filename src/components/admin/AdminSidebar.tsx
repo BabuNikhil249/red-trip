@@ -1,17 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Car, UserCheck, Compass, FileText, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Building2, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export const AdminSidebar: React.FC = () => {
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || (path === '/admin/agencies' && location.pathname === '/admin');
 
   const links = [
-    { path: '/admin', label: 'Dashboard Overview', icon: LayoutDashboard },
-    { path: '/admin/fleet', label: 'Fleet Vehicles', icon: Car },
-    { path: '/admin/drivers', label: 'Driver Directory', icon: UserCheck },
-    { path: '/admin/trips', label: 'Scheduled Trips', icon: Compass },
-    { path: '/admin/bookings', label: 'Customer Bookings', icon: FileText },
+    { path: '/admin/agencies', label: 'Travel Agencies', icon: Building2 },
   ];
 
   return (

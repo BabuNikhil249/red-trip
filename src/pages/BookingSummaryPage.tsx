@@ -68,6 +68,12 @@ export const BookingSummaryPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      const agencyName =
+        selectedVehicle?.agencyName ||
+        selectedDriver?.agencyName ||
+        selectedTrip?.agencyName ||
+        'M/S Apoorva Travels';
+
       const created = await bookingService.createBooking({
         bookingType: activeBookingType,
         customer: customerInfo,
@@ -88,6 +94,7 @@ export const BookingSummaryPage: React.FC = () => {
         taxAmount,
         discount: 0,
         totalAmount,
+        agencyName,
       });
 
       addToast(`Booking ${created.id} confirmed successfully!`, 'success');

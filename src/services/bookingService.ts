@@ -137,6 +137,52 @@ export const bookingService = {
 
     const updated = [newBooking, ...bookings];
     saveStorage(BOOKINGS_KEY, updated);
+
+    // ALSO sync into Agency Dashboard Storage so Agency sees live customer website bookings!
+    try {
+      const AGENCY_BOOKINGS_KEY = 'red_trip_agency_bookings_v3';
+      const agencyBookings = loadStorage<any[]>(AGENCY_BOOKINGS_KEY, []);
+      const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+      const newAgencyBooking = {
+        id: `AG-${randomSuffix}`,
+        agencyId: 'ag-101',
+        agencyName: 'M/S Apoorva',
+        travelDate: payload.travelDate || new Date().toISOString().split('T')[0],
+        pickupTime: payload.pickupTime || '08:00 AM',
+        travelerName: payload.customer?.fullName || 'Website Customer',
+        travelerPhone: payload.customer?.phone || '+91 98765 43210',
+        pickup1: payload.pickupLocation || 'Customer Pickup Address',
+        dropLocation: payload.dropLocation || 'Destination',
+        vehicleTypeRequested: payload.vehicle?.name || payload.trip?.title || 'Rental Vehicle',
+        assignedCabNo: 'KA 05 AM 2969',
+        assignedDriverName: payload.driver?.name || 'Ramesh Gowda',
+        assignedDriverPhone: payload.driver?.phone || '+91 98765 43210',
+        status: 'Assigned',
+        createdAt: new Date().toISOString(),
+        isCustomerWebsiteBooking: true,
+        bookingType: payload.bookingType,
+        totalAmount: payload.totalAmount,
+        notes: `Customer Website Booking (${payload.bookingType}). Paid: ₹${payload.totalAmount}`,
+        pickupPoints: [
+          {
+            id: `pk-cust-${Date.now()}`,
+            orderNumber: 1,
+            location: payload.pickupLocation || 'Customer Pickup Address',
+            pickupTime: payload.pickupTime || '08:00 AM',
+            passengerName: payload.customer?.fullName || 'Website Customer',
+            passengerPhone: payload.customer?.phone || '+91 98765 43210',
+            otp: randomOtp,
+            status: 'Pending',
+          }
+        ]
+      };
+
+      saveStorage(AGENCY_BOOKINGS_KEY, [newAgencyBooking, ...agencyBookings]);
+    } catch (err) {
+      console.error('Failed to sync booking to agency storage', err);
+    }
+
     return newBooking;
   },
 

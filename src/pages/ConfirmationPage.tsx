@@ -11,6 +11,7 @@ import {
   MapPin,
   Car,
   User,
+  Building2,
 } from 'lucide-react';
 
 export const ConfirmationPage: React.FC = () => {
@@ -49,6 +50,13 @@ export const ConfirmationPage: React.FC = () => {
     window.print();
   };
 
+  const agencyName =
+    booking.agencyName ||
+    booking.vehicle?.agencyName ||
+    booking.driver?.agencyName ||
+    booking.trip?.agencyName ||
+    'M/S Apoorva Travels';
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 print:p-0 print:max-w-full">
       {/* Success Hero Header */}
@@ -80,6 +88,17 @@ export const ConfirmationPage: React.FC = () => {
 
         {/* Voucher Body Details */}
         <div className="p-6 md:p-8 space-y-6">
+          {/* Agency Name Banner */}
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200/80 p-3.5 rounded-2xl">
+            <Building2 className="w-5 h-5 text-red-600 shrink-0" />
+            <div>
+              <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest block">
+                Operating Travel Agency
+              </span>
+              <span className="font-extrabold text-slate-900 text-sm">{agencyName}</span>
+            </div>
+          </div>
+
           {/* Customer & Type */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-slate-100 text-xs sm:text-sm">
             <div>
