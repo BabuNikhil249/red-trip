@@ -74,13 +74,15 @@ export interface PickupPoint {
   id: string;
   orderNumber: number;
   location: string;
+  locationUrl?: string;
   pickupTime: string;
   passengerName: string;
   passengerPhone: string;
   flightNo?: string;
   otp: string;
-  status: 'Pending' | 'PickedUp';
+  status: 'Pending' | 'PickedUp' | 'Cancelled';
   pickedUpAt?: string;
+  cancellationReason?: string;
 }
 
 export interface AgencyBooking {
@@ -101,7 +103,20 @@ export interface AgencyBooking {
   assignedDriverId?: string;
   assignedDriverName?: string;
   assignedDriverPhone?: string;
-  status: 'Pending' | 'Assigned' | 'In Progress' | 'Duty Slip Updated' | 'Billed' | 'Completed';
+  driverAccepted?: boolean;
+  acceptedAt?: string;
+  status: 'Pending' | 'Pending Acceptance' | 'Accepted' | 'Assigned' | 'In Progress' | 'Duty Slip Updated' | 'Billed' | 'Completed' | 'Cancelled';
+  currentStep?: string;
+  cancelReason?: string;
+  cancelCategory?: string;
+  cancelledBy?: 'DRIVER' | 'AGENCY' | 'PASSENGER';
+  cancelledAt?: string;
+  driverLocation?: {
+    lat: number;
+    lng: number;
+    address: string;
+    speedKm: number;
+  };
   createdAt: string;
   notes?: string;
   dutySlip?: DutySlipData;

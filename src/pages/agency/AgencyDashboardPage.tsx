@@ -3,7 +3,28 @@ import { useBookingContext } from '../../context/BookingContext';
 import { agencyDriverService } from '../../services/agencyDriverService';
 import type { AgencyBooking, Vehicle, AvailableTrip } from '../../types';
 import { DutySlipDocument } from '../../components/duty/DutySlipDocument';
-import { Building2, Plus, MapPin, Car, FileText, CheckCircle, RefreshCw, Zap, Trash2, KeyRound, CheckCircle2, Globe, Compass } from 'lucide-react';
+import { GoogleMapViewer } from '../../components/common/GoogleMapViewer';
+import {
+  Building2,
+  Plus,
+  MapPin,
+  Car,
+  FileText,
+  CheckCircle,
+  RefreshCw,
+  Zap,
+  Trash2,
+  KeyRound,
+  CheckCircle2,
+  Globe,
+  Compass,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Ban,
+  Navigation,
+  Clock,
+} from 'lucide-react';
 
 interface DynamicPickupInput {
   location: string;
@@ -27,6 +48,9 @@ export const AgencyDashboardPage: React.FC = () => {
   const [bookingFilterTab, setBookingFilterTab] = useState<'ALL' | 'AGENCY' | 'CUSTOMER_WEBSITE'>('ALL');
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
   const [selectedBookingForBill, setSelectedBookingForBill] = useState<AgencyBooking | null>(null);
+
+  // Map Toggle per Booking ID
+  const [mapToggleMap, setMapToggleMap] = useState<{ [id: string]: boolean }>({});
 
   // Vehicle Modal State
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
@@ -82,7 +106,9 @@ export const AgencyDashboardPage: React.FC = () => {
   const [agencyNameInput, setAgencyNameInput] = useState(user.agencyName || 'M/S Apoorva');
   const [vehicleTypeInput, setVehicleTypeInput] = useState('Innova Crysta');
   const [travelDateInput, setTravelDateInput] = useState('2026-06-14');
-  const [dropLocationInput, setDropLocationInput] = useState('SAIACS CEO Centre (Kyalasanahalli, Bengaluru, Karnataka 560077)');
+  const [dropLocationInput, setDropLocationInput] = useState(
+    'SAIACS CEO Centre (Kyalasanahalli, Bengaluru, Karnataka 560077)'
+  );
   const [dynamicPickups, setDynamicPickups] = useState<DynamicPickupInput[]>([
     {
       location: 'Bangalore Airport (Terminal 1 Gate 4 Arrival)',
@@ -92,16 +118,16 @@ export const AgencyDashboardPage: React.FC = () => {
       flightNo: 'IndiGo6E - 828',
     },
     {
-      location: "Mr. Vivek's house (No. 56, Matrukrupa, 1st Floor, 3A Cross, Amarjyothi Layout, Ashwath Nagar, Thanisandra Main Road, Near Varsha Medicals, Bengaluru, Karnataka 560077)",
+      location:
+        "Mr. Vivek's house (No. 56, Matrukrupa, 1st Floor, 3A Cross, Amarjyothi Layout, Ashwath Nagar, Thanisandra Main Road, Near Varsha Medicals, Bengaluru, Karnataka 560077)",
       pickupTime: '06:15 PM',
       passengerName: 'Mr. Vivek',
       passengerPhone: '9845012345',
       flightNo: '',
-    }
+    },
   ]);
 
   const loadData = async () => {
-    setLoading(true);
     try {
       const [bData, vData, pData] = await Promise.all([
         agencyDriverService.getAgencyBookings(),
@@ -120,7 +146,24 @@ export const AgencyDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    // Listen for live updates dispatched by driver actions
+    const handleUpdateEvent = () => {
+      loadData();
+    };
+
+    window.addEventListener('red_trip_booking_updated', handleUpdateEvent);
+    window.addEventListener('storage', handleUpdateEvent);
+
+    return () => {
+      window.removeEventListener('red_trip_booking_updated', handleUpdateEvent);
+      window.removeEventListener('storage', handleUpdateEvent);
+    };
   }, []);
+
+  const toggleMap = (id: string) => {
+    setMapToggleMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // --- Dynamic Pickup Handlers ---
   const handleAddPickupField = () => {
@@ -132,7 +175,7 @@ export const AgencyDashboardPage: React.FC = () => {
         passengerName: '',
         passengerPhone: '',
         flightNo: '',
-      }
+      },
     ]);
   };
 
@@ -152,24 +195,25 @@ export const AgencyDashboardPage: React.FC = () => {
 
   const handleFillPromptExample = () => {
     setAgencyNameInput('M/S Apoorva');
-    setVehicleTypeInput('Innova Crysta');
+    setVehicleTypeInput('Toyota Innova Crysta');
     setTravelDateInput('2026-06-14');
     setDropLocationInput('SAIACS CEO Centre (Kyalasanahalli, Bengaluru, Karnataka 560077)');
     setDynamicPickups([
       {
-        location: 'From Bangalore airport- 5:25PM',
+        location: 'Bangalore Airport (Terminal 1 Gate 4 Arrival)',
         pickupTime: '05:25 PM',
         passengerName: 'Ms. Agey George',
         passengerPhone: '9871418158',
         flightNo: 'IndiGo6E - 828',
       },
       {
-        location: "Mr. Vivek's house (No. 56, Matrukrupa, 1st Floor, 3A Cross, Amarjyothi Layout, Ashwath Nagar, Thanisandra Main Road, Near Varsha Medicals, Bengaluru, Karnataka 560077)",
+        location:
+          "Mr. Vivek's house (No. 56, Matrukrupa, 1st Floor, 3A Cross, Amarjyothi Layout, Ashwath Nagar, Thanisandra Main Road, Near Varsha Medicals, Bengaluru, Karnataka 560077)",
         pickupTime: '06:15 PM',
         passengerName: 'Mr. Vivek',
         passengerPhone: '9845012345',
         flightNo: '',
-      }
+      },
     ]);
     addToast('Prompt multi-pickup details loaded!', 'info');
   };
@@ -206,7 +250,10 @@ export const AgencyDashboardPage: React.FC = () => {
   const handleAddVehicleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const features = vehicleForm.featuresInput.split(',').map((s) => s.trim()).filter(Boolean);
+      const features = vehicleForm.featuresInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       const added = await agencyDriverService.addAgencyVehicle({
         name: vehicleForm.name,
         model: vehicleForm.model,
@@ -240,8 +287,14 @@ export const AgencyDashboardPage: React.FC = () => {
   const handleAddPackageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const inclusions = packageForm.inclusionsInput.split(',').map((s) => s.trim()).filter(Boolean);
-      const highlights = packageForm.highlightsInput.split(',').map((s) => s.trim()).filter(Boolean);
+      const inclusions = packageForm.inclusionsInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const highlights = packageForm.highlightsInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
 
       const added = await agencyDriverService.addAgencyTripPackage({
         title: packageForm.title,
@@ -297,12 +350,14 @@ export const AgencyDashboardPage: React.FC = () => {
                 <Building2 className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-xs font-bold text-red-400 uppercase tracking-widest block">Agency Control Center</span>
+                <span className="text-xs font-bold text-red-400 uppercase tracking-widest block">
+                  Agency Operations Control Center
+                </span>
                 <h1 className="text-2xl sm:text-3xl font-black text-white">{user.name || 'M/S Apoorva'}</h1>
               </div>
             </div>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-              Manage multi-pickup trips with OTP verification, publish rental cars (with/without driver), set per-KM rates, and launch trip packages reflected live to customer users.
+              Live Rapido/Uber-style driver tracking, Google Maps navigation, multi-pickup OTP verification, and dynamic trip status updates.
             </p>
           </div>
 
@@ -310,7 +365,7 @@ export const AgencyDashboardPage: React.FC = () => {
             <button
               onClick={loadData}
               className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all"
-              title="Refresh Data"
+              title="Refresh Live Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -359,7 +414,7 @@ export const AgencyDashboardPage: React.FC = () => {
                   bookingFilterTab === 'ALL' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'
                 }`}
               >
-                All Trips
+                All Trips ({bookings.length})
               </button>
               <button
                 onClick={() => setBookingFilterTab('AGENCY')}
@@ -396,14 +451,19 @@ export const AgencyDashboardPage: React.FC = () => {
               {filteredBookings.map((booking) => {
                 const pickups = booking.pickupPoints || [];
                 const pickedUpCount = pickups.filter((p) => p.status === 'PickedUp').length;
+                const isCancelled = booking.status === 'Cancelled';
+                const showMap = mapToggleMap[booking.id] !== false; // default map expanded
 
                 return (
                   <div
                     key={booking.id}
-                    className="bg-white rounded-3xl border-2 border-slate-200 shadow-xl p-6 space-y-6"
+                    className={`bg-white rounded-3xl border-2 shadow-xl p-6 space-y-6 transition-all ${
+                      isCancelled ? 'border-red-300 bg-red-50/20' : 'border-slate-200'
+                    }`}
                   >
+                    {/* Header Row */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         <span className="text-sm font-black text-white bg-slate-900 px-3 py-1 rounded-xl">
                           {booking.id}
                         </span>
@@ -413,37 +473,139 @@ export const AgencyDashboardPage: React.FC = () => {
                           </span>
                         )}
                         <span className="text-xs font-bold text-slate-600">Reporting: {booking.agencyName}</span>
+
+                        {/* Driver Acceptance Indicator Badge */}
+                        {!isCancelled && (
+                          !booking.driverAccepted ? (
+                            <span className="text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-xl flex items-center gap-1.5 animate-pulse">
+                              <Clock className="w-3.5 h-3.5 text-amber-600" /> Pending Driver Acceptance ({booking.assignedDriverName || 'Vikas U'})
+                            </span>
+                          ) : (
+                            <span className="text-xs font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Driver Accepted Order
+                            </span>
+                          )
+                        )}
+
+                        {booking.currentStep && !isCancelled && booking.driverAccepted && (
+                          <span className="text-xs font-mono font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-xl flex items-center gap-1">
+                            <Compass className="w-3.5 h-3.5 text-amber-600 animate-spin" /> {booking.currentStep}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-xl flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          {pickedUpCount} of {pickups.length} Picked Up (OTP Verified)
-                        </span>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {isCancelled ? (
+                          <span className="text-xs font-black bg-red-100 text-red-900 border border-red-300 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                            <Ban className="w-4 h-4 text-red-600" /> Cancelled / Rejected by Driver
+                          </span>
+                        ) : (
+                          <span className="text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            {pickedUpCount} of {pickups.length} Picked Up (OTP Verified)
+                          </span>
+                        )}
 
                         {booking.dutySlip ? (
                           <button
                             onClick={() => setSelectedBookingForBill(booking)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded-xl text-xs font-black shadow-lg ring-2 ring-amber-400/40 active:scale-95"
                           >
-                            <FileText className="w-4 h-4 text-amber-400" /> View Duty Slip & Bill Report
+                            <FileText className="w-4 h-4 text-amber-400" /> View & Print Bill Report (Logbook #{booking.dutySlip.logSheetNo})
                           </button>
                         ) : (
-                          <button
-                            onClick={async () => {
-                              const updated = await agencyDriverService.completeTripAndGenerateBill(booking.id);
-                              addToast('Pickups completed & Bill Report generated for Agency & Driver!', 'success');
-                              setSelectedBookingForBill(updated);
-                              loadData();
-                            }}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all shadow-md active:scale-95"
-                          >
-                            <CheckCircle2 className="w-4 h-4" /> Complete Pickups & Generate Bill
-                          </button>
+                          !isCancelled && (
+                            <button
+                              onClick={async () => {
+                                const updated = await agencyDriverService.completeTripAndGenerateBill(booking.id);
+                                addToast(
+                                  'Pickups completed & Bill Report generated for Agency & Driver!',
+                                  'success'
+                                );
+                                setSelectedBookingForBill(updated);
+                                loadData();
+                              }}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all shadow-md active:scale-95"
+                            >
+                              <CheckCircle2 className="w-4 h-4" /> Complete Pickups & Bill
+                            </button>
+                          )
                         )}
                       </div>
                     </div>
 
+                    {/* Pending Driver Acceptance Banner */}
+                    {!isCancelled && !booking.driverAccepted && (
+                      <div className="bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 text-amber-950 font-bold text-xs">
+                          <Clock className="w-5 h-5 text-amber-600 animate-spin" />
+                          <span>
+                            Trip request dispatched to Chauffeur <strong>{booking.assignedDriverName || 'Vikas U'}</strong>. Driver must accept or reject this trip order before full route navigation unlocks.
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono font-black bg-amber-200 text-amber-900 px-2.5 py-1 rounded-lg">
+                          Live Sync Active
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Cancelled Trip Red Banner if Cancelled */}
+                    {isCancelled && (
+                      <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl space-y-1">
+                        <div className="flex items-center gap-2 text-red-900 font-black text-sm">
+                          <AlertTriangle className="w-5 h-5 text-red-600" />
+                          <span>Trip Cancelled Notification (Reflected Live from Driver)</span>
+                        </div>
+                        <p className="text-xs text-red-800 font-semibold">
+                          <strong>Cancellation Reason Selected by Driver:</strong>{' '}
+                          <span className="bg-red-100 text-red-950 px-2 py-0.5 rounded font-mono font-bold">
+                            {booking.cancelReason || 'Customer did not arrive after wait time'}
+                          </span>
+                        </p>
+                        {booking.cancelledAt && (
+                          <span className="text-[10px] text-red-600 font-mono block">
+                            Cancelled Timestamp: {booking.cancelledAt} • Updated in real-time
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Chauffeur Details Bar */}
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
+                      <div className="flex items-center gap-2">
+                        <Car className="w-4 h-4 text-amber-600" />
+                        <span>Assigned Vehicle:</span>
+                        <span className="text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-300 font-mono">
+                          {booking.assignedCabNo || 'KA 05 AM 2969'}
+                        </span>
+                        <span className="text-slate-500 font-normal">({booking.vehicleTypeRequested})</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-600">Chauffeur: {booking.assignedDriverName || 'Vikas U'}</span>
+                        <span className="text-slate-500 font-mono">{booking.assignedDriverPhone || '+91 98123 45678'}</span>
+                      </div>
+                    </div>
+
+                    {/* Google Map Viewer Section */}
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => toggleMap(booking.id)}
+                        className="w-full flex items-center justify-between p-3 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded-2xl text-xs font-black transition-all shadow-md"
+                      >
+                        <span className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-red-500" /> Live Chauffeur GPS Map Navigation & Multi-Stop Route
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-300 font-normal">
+                          {showMap ? 'Hide Map' : 'Show Map'}{' '}
+                          {showMap ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </span>
+                      </button>
+
+                      {showMap && <GoogleMapViewer booking={booking} height="h-72" />}
+                    </div>
+
+                    {/* Sequential Pickup Points & Customer OTP Tracker */}
                     <div className="space-y-3">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-red-600" /> Dynamic Pickup Stops & Customer OTP Verification
@@ -454,7 +616,11 @@ export const AgencyDashboardPage: React.FC = () => {
                           <div
                             key={pt.id}
                             className={`p-4 rounded-2xl border-2 space-y-2 ${
-                              pt.status === 'PickedUp' ? 'bg-emerald-50/50 border-emerald-300' : 'bg-amber-50/40 border-amber-300'
+                              pt.status === 'PickedUp'
+                                ? 'bg-emerald-50/50 border-emerald-300'
+                                : isCancelled
+                                ? 'bg-red-50/50 border-red-200'
+                                : 'bg-amber-50/40 border-amber-300'
                             }`}
                           >
                             <div className="flex items-center justify-between">
@@ -470,6 +636,10 @@ export const AgencyDashboardPage: React.FC = () => {
                                   <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
                                     ✓ Verified ({pt.pickedUpAt})
                                   </span>
+                                ) : isCancelled ? (
+                                  <span className="text-xs font-bold text-red-800 bg-red-100 px-2 py-0.5 rounded-md">
+                                    ❌ Cancelled
+                                  </span>
                                 ) : (
                                   <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
                                     ⏳ Pending Driver OTP
@@ -484,6 +654,9 @@ export const AgencyDashboardPage: React.FC = () => {
                               <p className="text-xs text-slate-800 font-medium bg-white p-2 rounded-xl border border-slate-200">
                                 {pt.location}
                               </p>
+                              {pt.flightNo && (
+                                <p className="text-[11px] text-blue-700 font-bold">Flight: {pt.flightNo}</p>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -502,14 +675,14 @@ export const AgencyDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* SECTION 2: RENTAL CARS MANAGEMENT (WITH/WITHOUT DRIVER & PER KM PRICING) */}
+      {/* SECTION 2: RENTAL CARS MANAGEMENT */}
       {portalTab === 'VEHICLES' && (
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
             <div>
               <h2 className="text-xl font-black text-slate-900">Rental Vehicles Directory</h2>
               <p className="text-xs text-slate-500">
-                Add rental cars with driver or self-drive, set per-KM rates, daily tariff, and security deposits. Changes reflect live to customers!
+                Add rental cars with driver or self-drive, set per-KM rates, daily tariff, and security deposits.
               </p>
             </div>
 
@@ -521,59 +694,12 @@ export const AgencyDashboardPage: React.FC = () => {
             </button>
           </div>
 
-          {/* LIVE CUSTOMER CAR RENTAL BOOKINGS LIST */}
-          <div className="bg-red-50/50 border-2 border-red-200 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-red-950 uppercase tracking-wider flex items-center gap-2">
-                <Globe className="w-4 h-4 text-red-600" /> Live Customer Car Rental Bookings from Website ({bookings.filter((b) => b.isCustomerWebsiteBooking).length})
-              </h3>
-              <span className="text-xs text-red-700 font-bold">Auto-synced from Customer Rental Bookings</span>
-            </div>
-
-            {bookings.filter((b) => b.isCustomerWebsiteBooking).length === 0 ? (
-              <p className="text-xs text-slate-500 italic bg-white p-4 rounded-2xl border border-slate-200">
-                No customer car bookings received yet. When a customer books a vehicle (with or without driver) on the website, it will appear here immediately!
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bookings.filter((b) => b.isCustomerWebsiteBooking).map((b) => (
-                  <div key={b.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs font-black text-white bg-slate-900 px-2.5 py-0.5 rounded-lg">
-                          {b.id}
-                        </span>
-                        <h4 className="font-extrabold text-slate-900 text-sm mt-1">{b.travelerName} ({b.travelerPhone})</h4>
-                      </div>
-                      <span className="text-xs font-black text-red-600 bg-red-50 px-2.5 py-1 rounded-xl">
-                        {b.vehicleTypeRequested}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded-xl font-medium">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase">Travel Date</span>
-                        <span className="font-bold text-slate-800">{b.travelDate}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase">Pickup Location</span>
-                        <span className="font-bold text-slate-800 truncate block">{b.pickup1}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                      <span className="font-bold text-emerald-700">Driver: {b.assignedDriverName || 'Vikas U'}</span>
-                      <span className="font-black text-slate-900">OTP: {b.pickupPoints?.[0]?.otp || '8520'}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vehicles.map((v) => (
-              <div key={v.id} className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col justify-between">
+              <div
+                key={v.id}
+                className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col justify-between"
+              >
                 <div>
                   <div className="relative h-48 overflow-hidden bg-slate-100">
                     <img src={v.image} alt={v.name} className="w-full h-full object-cover" />
@@ -593,7 +719,9 @@ export const AgencyDashboardPage: React.FC = () => {
 
                   <div className="p-5 space-y-3">
                     <div>
-                      <span className="text-[10px] font-extrabold text-red-600 uppercase tracking-widest block">{v.category}</span>
+                      <span className="text-[10px] font-extrabold text-red-600 uppercase tracking-widest block">
+                        {v.category}
+                      </span>
                       <h3 className="text-lg font-black text-slate-900">{v.name}</h3>
                       <p className="text-xs text-slate-500 font-semibold">{v.model}</p>
                     </div>
@@ -611,7 +739,10 @@ export const AgencyDashboardPage: React.FC = () => {
 
                     <div className="flex flex-wrap gap-1 pt-1">
                       {v.features.map((feat, idx) => (
-                        <span key={idx} className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        <span
+                          key={idx}
+                          className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        >
                           {feat}
                         </span>
                       ))}
@@ -638,7 +769,7 @@ export const AgencyDashboardPage: React.FC = () => {
             <div>
               <h2 className="text-xl font-black text-slate-900">Scheduled Trip Packages Directory</h2>
               <p className="text-xs text-slate-500">
-                Create & publish tour packages (Coorg, Mysore, Ooty, Kashmir). Published packages immediately reflect on the customer website!
+                Create & publish tour packages (Coorg, Mysore, Ooty, Kashmir).
               </p>
             </div>
 
@@ -650,89 +781,44 @@ export const AgencyDashboardPage: React.FC = () => {
             </button>
           </div>
 
-          {/* LIVE CUSTOMER TOUR PACKAGE BOOKINGS LIST */}
-          <div className="bg-blue-50/50 border-2 border-blue-200 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-blue-950 uppercase tracking-wider flex items-center gap-2">
-                <Globe className="w-4 h-4 text-blue-600" /> Live Customer Tour Package Ticket Bookings from Website ({bookings.filter((b) => b.isCustomerWebsiteBooking).length})
-              </h3>
-              <span className="text-xs text-blue-700 font-bold">Auto-synced from Tour Package Ticket Bookings</span>
-            </div>
-
-            {bookings.filter((b) => b.isCustomerWebsiteBooking).length === 0 ? (
-              <p className="text-xs text-slate-500 italic bg-white p-4 rounded-2xl border border-slate-200">
-                No customer tour package bookings received yet. When a customer books tickets for a trip package on the website, it will appear here immediately!
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bookings.filter((b) => b.isCustomerWebsiteBooking).map((b) => (
-                  <div key={b.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs font-black text-white bg-blue-900 px-2.5 py-0.5 rounded-lg">
-                          {b.id}
-                        </span>
-                        <h4 className="font-extrabold text-slate-900 text-sm mt-1">{b.travelerName} ({b.travelerPhone})</h4>
-                      </div>
-                      <span className="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-xl">
-                        {b.vehicleTypeRequested}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded-xl font-medium">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase">Travel Date</span>
-                        <span className="font-bold text-slate-800">{b.travelDate}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block uppercase">Pickup Point</span>
-                        <span className="font-bold text-slate-800 truncate block">{b.pickup1}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                      <span className="font-bold text-emerald-700">Driver Assigned: {b.assignedDriverName || 'Ramesh Gowda'}</span>
-                      <span className="font-black text-slate-900">OTP: {b.pickupPoints?.[0]?.otp || '8520'}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tripPackages.map((pkg) => (
-              <div key={pkg.id} className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col justify-between">
-                <div className="p-6 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <span className="text-xs font-black text-blue-600 uppercase tracking-wider block">{pkg.region} • {pkg.categoryTag}</span>
-                      <h3 className="text-xl font-black text-slate-900">{pkg.title}</h3>
-                    </div>
-                    <span className="text-lg font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 shrink-0">
-                      ₹{pkg.pricePerPassenger}/person
+              <div
+                key={pkg.id}
+                className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col justify-between"
+              >
+                <div>
+                  <div className="relative h-48 overflow-hidden bg-slate-100">
+                    <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-3 left-3 bg-slate-900 text-yellow-400 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
+                      {pkg.region}
                     </span>
                   </div>
 
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 grid grid-cols-2 gap-2 text-xs font-bold">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase block">Route</span>
-                      <span>{pkg.from} ➔ {pkg.to}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase block">Duration</span>
-                      <span>{pkg.durationDaysNights || pkg.estimatedDuration}</span>
+                  <div className="p-5 space-y-3">
+                    <h3 className="text-base font-black text-slate-900 leading-snug">{pkg.title}</h3>
+                    <p className="text-xs text-slate-500 font-medium line-clamp-2">{pkg.routeDescription}</p>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl font-bold">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Price / Seat</span>
+                        <span className="text-blue-600 font-black">₹{pkg.pricePerPassenger}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Seats Left</span>
+                        <span className="text-slate-900 font-black">
+                          {pkg.availableSeats} / {pkg.totalSeats}
+                        </span>
+                      </div>
                     </div>
                   </div>
-
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{pkg.routeDescription}</p>
                 </div>
 
-                <div className="p-4 bg-slate-900 text-white flex items-center justify-between text-xs">
-                  <span className="font-bold text-yellow-300">Driver: {pkg.driverName} ({pkg.vehicleName})</span>
-                  <span className="font-bold bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-lg">
-                    Published Live
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Scheduled
                   </span>
+                  <span className="text-slate-400 font-mono text-[10px]">ID: {pkg.id}</span>
                 </div>
               </div>
             ))}
@@ -740,154 +826,189 @@ export const AgencyDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 1: CREATE DYNAMIC MULTI-PICKUP TRIP */}
+      {/* MODAL 1: CREATE DYNAMIC MULTI-PICKUP TRIP (MATCHING USER REFERENCE IMAGE) */}
       {showCreateTripModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-xl font-black text-slate-900">New Agency Multi-Pickup Trip Request</h3>
-                <p className="text-xs text-slate-500">Dynamically add N pickup points with passenger contact details & OTP verification</p>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                  New Agency Multi-Pickup Trip Request
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Dynamically add N pickup points with passenger contact details & OTP verification
+                </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleFillPromptExample}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-xs font-bold transition-all"
-              >
-                <Zap className="w-3.5 h-3.5" /> Auto-Fill Prompt Example
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleFillPromptExample}
+                  className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-black border border-red-200 flex items-center gap-1.5 transition-all shadow-xs"
+                >
+                  <Zap className="w-3.5 h-3.5 text-red-600" /> Auto-Fill Prompt Example
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTripModal(false)}
+                  className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+                >
+                  ✕ Close
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleCreateTripSubmit} className="space-y-6">
+              {/* Top Row Form Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Agency Name *</label>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                    AGENCY NAME *
+                  </label>
                   <input
                     type="text"
                     required
                     value={agencyNameInput}
                     onChange={(e) => setAgencyNameInput(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Vehicle Requested *</label>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                    VEHICLE REQUESTED *
+                  </label>
                   <select
                     value={vehicleTypeInput}
                     onChange={(e) => setVehicleTypeInput(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                   >
-                    <option value="Innova Crysta">Toyota Innova Crysta</option>
+                    <option value="Toyota Innova Crysta">Toyota Innova Crysta</option>
                     <option value="Kia Carens">Kia Carens</option>
                     <option value="Swift Dzire">Swift Dzire</option>
-                    <option value="BMW 3 Series">BMW 3 Series</option>
-                    <option value="Tempo Traveller">Tempo Traveller</option>
+                    <option value="Force Tempo Traveller">Force Tempo Traveller</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Travel Date *</label>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                    TRAVEL DATE *
+                  </label>
                   <input
                     type="date"
                     required
                     value={travelDateInput}
                     onChange={(e) => setTravelDateInput(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>
 
-              {/* DYNAMIC N PICKUP POINTS BUILDER */}
+              {/* DYNAMIC PASSENGER PICKUP POINTS SECTION */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="text-xs font-black text-slate-900 uppercase">
-                    Dynamic Passenger Pickup Points ({dynamicPickups.length} Stops)
+                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                    DYNAMIC PASSENGER PICKUP POINTS ({dynamicPickups.length} STOPS)
                   </span>
                   <button
                     type="button"
                     onClick={handleAddPickupField}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-xl text-xs"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition-all shadow-md active:scale-95"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add Another Stop
+                    <Plus className="w-4 h-4" /> Add Another Stop
                   </button>
                 </div>
 
                 {dynamicPickups.map((pickup, idx) => (
-                  <div key={idx} className="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200 space-y-3">
+                  <div
+                    key={idx}
+                    className="bg-slate-50/80 p-5 rounded-2xl border-2 border-slate-200 space-y-4 shadow-xs"
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-300">
+                      <span className="text-xs font-black text-slate-900 bg-white px-3 py-1 rounded-xl border border-slate-300 shadow-xs">
                         📍 PICKUP STOP #{idx + 1}
                       </span>
                       {dynamicPickups.length > 1 && (
                         <button
                           type="button"
                           onClick={() => handleRemovePickupField(idx)}
-                          className="text-red-500 text-xs font-bold flex items-center gap-1"
+                          className="text-red-600 hover:text-red-700 text-xs font-bold flex items-center gap-1"
                         >
-                          <Trash2 className="w-3.5 h-3.5" /> Remove Stop
+                          <Trash2 className="w-4 h-4" /> Remove Stop
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Passenger Name *</label>
+                        <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                          PASSENGER NAME *
+                        </label>
                         <input
                           type="text"
                           required
                           placeholder="e.g. Ms. Agey George"
                           value={pickup.passengerName}
                           onChange={(e) => handlePickupFieldChange(idx, 'passengerName', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-xs"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Passenger Phone *</label>
+                        <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                          PASSENGER PHONE *
+                        </label>
                         <input
                           type="tel"
                           required
                           placeholder="e.g. 9871418158"
                           value={pickup.passengerPhone}
                           onChange={(e) => handlePickupFieldChange(idx, 'passengerPhone', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-xs"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Pickup Address *</label>
+                      <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                        PICKUP ADDRESS *
+                      </label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Bangalore Airport / Thanisandra Main Road"
+                        placeholder="e.g. Bangalore Airport (Terminal 1 Gate 4 Arrival)"
                         value={pickup.location}
                         onChange={(e) => handlePickupFieldChange(idx, 'location', e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-xs"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-xs text-slate-900 focus:outline-none focus:border-red-500"
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Pickup Time *</label>
+                        <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                          PICKUP TIME *
+                        </label>
                         <input
                           type="text"
                           required
+                          placeholder="e.g. 05:25 PM"
                           value={pickup.pickupTime}
                           onChange={(e) => handlePickupFieldChange(idx, 'pickupTime', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-xs"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Flight No (Optional)</label>
+                        <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                          FLIGHT NO (OPTIONAL)
+                        </label>
                         <input
                           type="text"
                           placeholder="e.g. IndiGo6E - 828"
                           value={pickup.flightNo}
                           onChange={(e) => handlePickupFieldChange(idx, 'flightNo', e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-xs"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-xs text-slate-900 focus:outline-none focus:border-red-500"
                         />
                       </div>
                     </div>
@@ -896,13 +1017,15 @@ export const AgencyDashboardPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Final Drop Location *</label>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  FINAL DROP LOCATION *
+                </label>
                 <textarea
                   rows={2}
                   required
                   value={dropLocationInput}
                   onChange={(e) => setDropLocationInput(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -910,15 +1033,15 @@ export const AgencyDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateTripModal(false)}
-                  className="px-5 py-2.5 border border-slate-200 rounded-xl font-bold text-sm text-slate-600"
+                  className="px-5 py-2.5 border border-slate-200 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl text-sm"
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl text-sm transition-all shadow-md active:scale-95"
                 >
-                  Create Trip & Generate OTPs
+                  Create Trip & Generate Customer OTPs
                 </button>
               </div>
             </form>
@@ -926,14 +1049,16 @@ export const AgencyDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 2: ADD RENTAL CAR (WITH / WITHOUT DRIVER & PER KM PRICE) */}
+      {/* MODAL 2: ADD RENTAL CAR */}
       {showAddVehicleModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-xl font-black text-slate-900">Publish New Rental Car</h3>
-                <p className="text-xs text-slate-500">Set rental options (With/Without driver) & per-KM rate live for customers</p>
+                <p className="text-xs text-slate-500">
+                  Set rental options (With/Without driver) & per-KM rate live for customers
+                </p>
               </div>
 
               <button
@@ -977,8 +1102,10 @@ export const AgencyDashboardPage: React.FC = () => {
 
               {/* Rental Options & Per-KM Pricing */}
               <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-200 space-y-3">
-                <span className="text-xs font-black text-amber-900 uppercase block">Rental Options & Pricing Rates</span>
-                
+                <span className="text-xs font-black text-amber-900 uppercase block">
+                  Rental Options & Pricing Rates
+                </span>
+
                 <div className="flex gap-4 text-xs font-bold">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1047,22 +1174,13 @@ export const AgencyDashboardPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Features (Comma Separated)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Features (Comma Separated)
+                </label>
                 <input
                   type="text"
-                  placeholder="Captain Seats, Dual AC, Sunroof, Push Button Start"
                   value={vehicleForm.featuresInput}
                   onChange={(e) => setVehicleForm({ ...vehicleForm, featuresInput: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Image URL</label>
-                <input
-                  type="url"
-                  value={vehicleForm.image}
-                  onChange={(e) => setVehicleForm({ ...vehicleForm, image: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
                 />
               </div>
@@ -1075,11 +1193,8 @@ export const AgencyDashboardPage: React.FC = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm"
-                >
-                  Publish Car Live to Customers
+                <button type="submit" className="px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl text-sm">
+                  Publish Vehicle
                 </button>
               </div>
             </form>
@@ -1087,14 +1202,14 @@ export const AgencyDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 3: ADD SCHEDULED TRIP PACKAGE */}
+      {/* MODAL 3: ADD TRIP PACKAGE */}
       {showAddPackageModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-xl font-black text-slate-900">Publish New Scheduled Trip Package</h3>
-                <p className="text-xs text-slate-500">Add tour package details live for customer ticket bookings</p>
+                <p className="text-xs text-slate-500">Launch tour packages live on the customer website</p>
               </div>
 
               <button
@@ -1112,7 +1227,6 @@ export const AgencyDashboardPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Coorg Coffee Estate Retreat / Ooty Mountain Express"
                   value={packageForm.title}
                   onChange={(e) => setPackageForm({ ...packageForm, title: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
@@ -1121,19 +1235,7 @@ export const AgencyDashboardPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Region *</label>
-                  <select
-                    value={packageForm.region}
-                    onChange={(e) => setPackageForm({ ...packageForm, region: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
-                  >
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="All India">All India</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">From City *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">From *</label>
                   <input
                     type="text"
                     required
@@ -1142,7 +1244,6 @@ export const AgencyDashboardPage: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">To Destination *</label>
                   <input
@@ -1153,52 +1254,18 @@ export const AgencyDashboardPage: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Price per Person (₹) *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Price / Seat (₹) *</label>
                   <input
                     type="number"
                     required
                     value={packageForm.pricePerPassenger}
-                    onChange={(e) => setPackageForm({ ...packageForm, pricePerPassenger: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-emerald-700"
+                    onChange={(e) =>
+                      setPackageForm({ ...packageForm, pricePerPassenger: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-blue-600"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Travel Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={packageForm.date}
-                    onChange={(e) => setPackageForm({ ...packageForm, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Departure Time *</label>
-                  <input
-                    type="text"
-                    required
-                    value={packageForm.departureTime}
-                    onChange={(e) => setPackageForm({ ...packageForm, departureTime: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Route Description *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={packageForm.routeDescription}
-                  onChange={(e) => setPackageForm({ ...packageForm, routeDescription: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm"
-                />
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -1209,11 +1276,8 @@ export const AgencyDashboardPage: React.FC = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm"
-                >
-                  Publish Package Live to Customers
+                <button type="submit" className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm">
+                  Publish Trip Package
                 </button>
               </div>
             </form>
@@ -1221,7 +1285,7 @@ export const AgencyDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW DUTY SLIP MODAL */}
+      {/* VIEW BILL REPORT DOCUMENT MODAL */}
       {selectedBookingForBill && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="max-w-4xl w-full my-8">
