@@ -1,5 +1,7 @@
 export type BookingType = 'WITH_DRIVER' | 'SELF_DRIVE' | 'DRIVER_ONLY' | 'AVAILABLE_TRIP';
 
+export type ServiceType = 'VEHICLE_AND_DRIVER' | 'VEHICLE_ONLY' | 'DRIVER_ONLY' | 'AVAILABLE_TRIP';
+
 export type TripTypeOption = 'One Way' | 'Round Trip' | 'Local' | 'Outstation' | 'Multi-Day';
 
 export type VehicleCategory = 'Sedan' | 'SUV' | 'Premium' | 'Tempo Traveller' | 'Bus';
@@ -8,7 +10,36 @@ export type FuelType = 'Petrol' | 'Diesel' | 'EV' | 'Hybrid';
 
 export type TransmissionType = 'Manual' | 'Automatic';
 
-export type BookingStatus = 'Upcoming' | 'Active' | 'Completed' | 'Cancelled';
+export type BookingStatus =
+  | 'SEARCHING_DRIVER'
+  | 'DRIVER_ASSIGNED'
+  | 'DRIVER_ON_THE_WAY'
+  | 'DRIVER_ARRIVED'
+  | 'TRIP_STARTED'
+  | 'TRIP_COMPLETED'
+  | 'PAYMENT_PENDING'
+  | 'PAYMENT_COMPLETED'
+  | 'CANCELLED_BY_AGENCY'
+  | 'CANCELLED_BY_DRIVER'
+  | 'CANCELLED_BY_ADMIN'
+  | 'DRIVER_DECLINED'
+  | 'DRIVER_TIMEOUT'
+  | 'NO_DRIVER_AVAILABLE'
+  | 'Upcoming'
+  | 'Active'
+  | 'Completed'
+  | 'Cancelled'
+  | 'Pending'
+  | 'Pending Acceptance'
+  | 'Accepted'
+  | 'Assigned'
+  | 'In Progress'
+  | 'Duty Slip Updated'
+  | 'Billed';
+
+export type DriverOnlineStatus = 'ONLINE' | 'OFFLINE';
+
+export type DriverWorkStatus = 'AVAILABLE' | 'BUSY' | 'ON_TRIP';
 
 export type UserRole = 'USER' | 'ADMIN' | 'DRIVER' | 'AGENCY';
 
@@ -21,6 +52,18 @@ export interface AuthUser {
   isLoggedIn: boolean;
   agencyName?: string;
   driverCabNo?: string;
+}
+
+export interface Passenger {
+  fullName: string;
+  phone: string;
+  alternatePhone?: string;
+  passengersCount: number;
+  idProofType?: string;
+  idProofNumber?: string;
+  emergencyContact?: string;
+  luggageDetails?: string;
+  specialInstructions?: string;
 }
 
 export interface DutySlipData {
@@ -89,11 +132,13 @@ export interface AgencyBooking {
   id: string;
   agencyId: string;
   agencyName: string;
+  serviceType: ServiceType;
+  passenger: Passenger;
   travelDate: string;
   pickupTime: string;
   flightNo?: string;
-  travelerName: string;
-  travelerPhone: string;
+  travelerName: string; // for compatibility
+  travelerPhone: string; // for compatibility
   pickupPoints: PickupPoint[];
   pickup1?: string;
   pickup2?: string;
@@ -103,13 +148,20 @@ export interface AgencyBooking {
   assignedDriverId?: string;
   assignedDriverName?: string;
   assignedDriverPhone?: string;
+  assignedDriverRating?: number;
   driverAccepted?: boolean;
   acceptedAt?: string;
-  status: 'Pending' | 'Pending Acceptance' | 'Accepted' | 'Assigned' | 'In Progress' | 'Duty Slip Updated' | 'Billed' | 'Completed' | 'Cancelled';
+  status: BookingStatus;
   currentStep?: string;
+  currentMatchingDriverId?: string;
+  driverRequestExpiresAt?: number;
+  attemptedDriverIds?: string[];
+  tripOtp?: string;
+  tripStartedAt?: string;
+  tripCompletedAt?: string;
   cancelReason?: string;
   cancelCategory?: string;
-  cancelledBy?: 'DRIVER' | 'AGENCY' | 'PASSENGER';
+  cancelledBy?: 'DRIVER' | 'AGENCY' | 'PASSENGER' | 'ADMIN';
   cancelledAt?: string;
   driverLocation?: {
     lat: number;
@@ -117,10 +169,20 @@ export interface AgencyBooking {
     address: string;
     speedKm: number;
   };
+  fare?: {
+    baseFare: number;
+    distanceKm: number;
+    ratePerKm: number;
+    tolls: number;
+    parking: number;
+    batta: number;
+    totalFare: number;
+  };
   createdAt: string;
   notes?: string;
   dutySlip?: DutySlipData;
   isCustomerWebsiteBooking?: boolean;
+  bookedTripId?: string;
 }
 
 export interface Vehicle {
@@ -144,6 +206,7 @@ export interface Vehicle {
   features: string[];
   available: boolean;
   agencyName?: string;
+  licensePlate?: string;
 }
 
 export interface Driver {
@@ -161,6 +224,15 @@ export interface Driver {
   phone: string;
   bio: string;
   agencyName?: string;
+  onlineStatus: DriverOnlineStatus;
+  workStatus: DriverWorkStatus;
+  cabNo?: string;
+  vehicleType?: string;
+  currentLocation?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
 }
 
 export interface AvailableTrip {
@@ -247,6 +319,18 @@ export interface SearchFilterState {
   durationHours: number;
   vehicleCategory: VehicleCategory | 'All';
   priceMax: number;
+}
+
+export interface AppNotification {
+  id: string;
+  recipientRole: 'AGENCY' | 'DRIVER' | 'ADMIN';
+  recipientId: string;
+  title: string;
+  message: string;
+  bookingId?: string;
+  timestamp: string;
+  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT';
+  read: boolean;
 }
 
 export interface ToastMessage {

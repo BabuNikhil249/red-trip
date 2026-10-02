@@ -22,7 +22,6 @@ import {
   ChevronDown,
   ChevronUp,
   Ban,
-  Navigation,
   Clock,
 } from 'lucide-react';
 
@@ -231,8 +230,11 @@ export const AgencyDashboardPage: React.FC = () => {
         travelDate: travelDateInput,
         pickupTime: dynamicPickups[0].pickupTime || '05:25 PM',
         flightNo: dynamicPickups[0].flightNo || '',
-        travelerName: dynamicPickups[0].passengerName || 'Passenger 1',
-        travelerPhone: dynamicPickups[0].passengerPhone || '',
+        passenger: {
+          fullName: dynamicPickups[0].passengerName || 'Passenger 1',
+          phone: dynamicPickups[0].passengerPhone || '',
+          passengersCount: dynamicPickups.length,
+        },
         pickupPointsInput: dynamicPickups,
         dropLocation: dropLocationInput,
         vehicleTypeRequested: vehicleTypeInput,

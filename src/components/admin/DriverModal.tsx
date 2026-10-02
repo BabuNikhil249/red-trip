@@ -66,6 +66,8 @@ export const DriverModal: React.FC<DriverModalProps> = ({
       hourlyRate,
       dailyRate,
       available: true,
+      onlineStatus: initialDriver ? initialDriver.onlineStatus : 'ONLINE',
+      workStatus: initialDriver ? initialDriver.workStatus : 'AVAILABLE',
       phone,
       bio,
     });

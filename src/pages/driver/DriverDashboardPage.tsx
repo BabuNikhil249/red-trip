@@ -21,12 +21,9 @@ import {
   ChevronDown,
   ChevronUp,
   Compass,
-  Ban,
   CheckCircle2,
   Bell,
   Clock,
-  ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 
 const CANCEL_REASON_OPTIONS = [

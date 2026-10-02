@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import type { AgencyBooking } from '../../types';
 import {
-  MapPin,
-  Navigation,
   Car,
-  Phone,
   Compass,
   CheckCircle2,
-  AlertTriangle,
-  Layers,
   ExternalLink,
   Play,
   Pause,
-  RefreshCw,
-  CheckCircle,
 } from 'lucide-react';
 
 interface GoogleMapViewerProps {
@@ -26,10 +19,7 @@ interface GoogleMapViewerProps {
 export const GoogleMapViewer: React.FC<GoogleMapViewerProps> = ({
   booking,
   height = 'h-96',
-  showDriverControls = false,
-  onUpdateStep,
 }) => {
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite'>('roadmap');
   const [isSimulating, setIsSimulating] = useState(false);
 
   const pickups = booking.pickupPoints || [];
@@ -67,7 +57,7 @@ export const GoogleMapViewer: React.FC<GoogleMapViewerProps> = ({
 
   // Simulation timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (isSimulating) {
       interval = setInterval(() => {
         setDriverProgress((prev) => {
