@@ -7,7 +7,8 @@ import { VehicleCard } from '../components/booking/VehicleCard';
 import { FilterPanel } from '../components/booking/FilterPanel';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
-import { ShieldCheck } from 'lucide-react';
+import { TripEstimatorBar } from '../components/booking/TripEstimatorBar';
+import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const RentWithDriverPage: React.FC = () => {
   const navigate = useNavigate();
@@ -42,17 +43,31 @@ export const RentWithDriverPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 text-white rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
+      <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm relative overflow-hidden border border-slate-200/90">
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/2 bg-cover bg-center opacity-15 hidden md:block pointer-events-none"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80')`,
+          }}
+        ></div>
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/30 text-red-400 text-xs font-bold uppercase tracking-wider border border-red-500/30">
-            <ShieldCheck className="w-4 h-4" /> Chauffeur Included
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-50 text-red-600 text-xs font-black uppercase tracking-widest border border-red-200">
+            <ShieldCheck className="w-4 h-4 text-red-600" /> Uniformed Chauffeur Included
           </span>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Rent a Vehicle with Driver</h1>
-          <p className="text-sm md:text-base text-slate-300">
-            Professional verified chauffeurs, transparent base rates, and doorstep pickup for local & outstation journeys.
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900">
+            Rent Vehicle with Certified Driver
+          </h1>
+          <p className="text-sm md:text-base text-slate-600 font-medium leading-relaxed">
+            Travel stress-free in sanitised luxury SUVs and Sedans. Experienced drivers, transparent distance rates, and doorstep pickup for local & outstation journeys.
           </p>
         </div>
       </div>
+
+      {/* Interactive Trip Date & Distance Estimator */}
+      <TripEstimatorBar
+        title="1. Select Journey Date & Distance (KM) for Live Day + KM Price"
+        subtitle="Select your travel date in the calendar below. All vehicle prices update in real-time according to daily tariff and distance (KM)."
+      />
 
       {/* Main Grid: Filters + Vehicles */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -78,11 +93,16 @@ export const RentWithDriverPage: React.FC = () => {
 
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">
-              Available Vehicles ({vehicles.length})
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              Showing vehicles for {searchParams.pickupLocation || 'Bangalore'}
+            <div>
+              <h2 className="text-xl font-black text-slate-900">
+                Available Chauffeur Fleet ({vehicles.length})
+              </h2>
+              <p className="text-xs text-slate-500">
+                Showing sanitized vehicles for {searchParams.pickupLocation || 'Bangalore'}
+              </p>
+            </div>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Instant Dispatch
             </span>
           </div>
 
@@ -103,11 +123,10 @@ export const RentWithDriverPage: React.FC = () => {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {vehicles.map((v) => (
+              {vehicles.map((vehicle) => (
                 <VehicleCard
-                  key={v.id}
-                  vehicle={v}
-                  isSelfDrive={false}
+                  key={vehicle.id}
+                  vehicle={vehicle}
                   onSelect={handleSelectVehicle}
                 />
               ))}

@@ -71,16 +71,20 @@ export const HelpDeskPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-red-950 text-white rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden border border-white/10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl relative overflow-hidden border border-slate-200/90">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none"
+          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80')` }}
+        />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-100/50 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 max-w-3xl space-y-4">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-black uppercase tracking-widest border border-red-500/30 backdrop-blur-md">
-            <LifeBuoy className="w-3.5 h-3.5" /> 24/7 Customer Support Desk
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-50 text-red-700 text-xs font-black uppercase tracking-widest border border-red-200 shadow-xs">
+            <LifeBuoy className="w-3.5 h-3.5 text-red-600" /> 24/7 Customer Support Desk
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
-            How Can We <span className="text-red-500">Help You</span> Today?
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            How Can We <span className="text-red-600">Help You</span> Today?
           </h1>
-          <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
             Need help with a trip package, chauffeur assignment, self-drive rental, or emergency roadside support? Our dedicated travel desk team is available 24/7 across Karnataka and India.
           </p>
         </div>

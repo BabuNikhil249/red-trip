@@ -184,6 +184,12 @@ export const agencyDriverService = {
     }[];
     dropLocation: string;
     vehicleTypeRequested: string;
+    vehicleNumber?: string;
+    vehicleModel?: string;
+    vehicleColor?: string;
+    driverName?: string;
+    driverPhone?: string;
+    driverLicense?: string;
     notes?: string;
     bookedTripId?: string;
   }): Promise<AgencyBooking> {
@@ -251,10 +257,14 @@ export const agencyDriverService = {
       pickup2: pickupPoints[1]?.location || '',
       dropLocation: payload.dropLocation,
       vehicleTypeRequested: payload.vehicleTypeRequested,
-      assignedCabNo: assignedCabNo || 'KA 05 AM 2969',
+      assignedCabNo: payload.vehicleNumber || assignedCabNo || 'KA 05 AM 2969',
       assignedDriverId,
-      assignedDriverName,
-      assignedDriverPhone,
+      assignedDriverName: payload.driverName || assignedDriverName,
+      assignedDriverPhone: payload.driverPhone || assignedDriverPhone,
+      assignedDriverLicense: payload.driverLicense,
+      vehicleNumber: payload.vehicleNumber,
+      vehicleModel: payload.vehicleModel,
+      vehicleColor: payload.vehicleColor,
       currentMatchingDriverId,
       driverRequestExpiresAt,
       attemptedDriverIds: currentMatchingDriverId ? [currentMatchingDriverId] : [],
@@ -764,5 +774,24 @@ export const agencyDriverService = {
   async getAgencyTripPackages(): Promise<AvailableTrip[]> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     return loadStorage<AvailableTrip[]>(TRIPS_KEY, INITIAL_AVAILABLE_TRIPS);
+  },
+
+  // Get driver credentials by phone number (for driver login)
+  async getDriverByPhone(phone: string): Promise<{ name: string; phone: string; cabNo: string; bookingId: string } | null> {
+    const bookings = loadStorage<AgencyBooking[]>(AGENCY_BOOKINGS_KEY, INITIAL_AGENCY_BOOKINGS);
+    // Search through all bookings for a matching assigned driver phone
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    for (const b of bookings) {
+      const bPhone = (b.assignedDriverPhone || '').replace(/[^0-9]/g, '');
+      if (bPhone && cleanPhone && (bPhone === cleanPhone || bPhone.endsWith(cleanPhone) || cleanPhone.endsWith(bPhone))) {
+        return {
+          name: b.assignedDriverName || 'Driver',
+          phone: b.assignedDriverPhone || phone,
+          cabNo: b.assignedCabNo || b.vehicleNumber || 'N/A',
+          bookingId: b.id,
+        };
+      }
+    }
+    return null;
   },
 };

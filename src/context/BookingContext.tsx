@@ -43,6 +43,8 @@ const DEFAULT_SEARCH: SearchFilterState = {
   durationHours: 8,
   vehicleCategory: 'All',
   priceMax: 20000,
+  distanceKm: 150,
+  totalDays: 1,
 };
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);

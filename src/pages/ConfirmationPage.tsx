@@ -117,7 +117,7 @@ export const ConfirmationPage: React.FC = () => {
           {/* Route & Schedule */}
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-4">
             <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Route & Timings
+              Route, Timings & Tariff Basis
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
               <div className="space-y-1">
@@ -134,16 +134,21 @@ export const ConfirmationPage: React.FC = () => {
                 <p className="font-bold text-slate-900">{booking.dropLocation}</p>
               </div>
 
-              <div className="space-y-1 sm:col-span-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+              <div className="space-y-1 sm:col-span-2 pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <span className="text-slate-400 font-medium block">Departure Date & Time</span>
                   <span className="font-bold text-slate-900">
                     {booking.travelDate} at {booking.pickupTime}
                   </span>
+                  {booking.returnDate && (
+                    <span className="text-xs text-blue-700 font-bold block">Return: {booking.returnDate}</span>
+                  )}
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-400 font-medium block">Capacity</span>
-                  <span className="font-bold text-slate-900">{booking.passengers} Passengers</span>
+                  <span className="text-slate-400 font-medium block">Duration & Distance</span>
+                  <span className="font-bold text-red-600">
+                    {booking.durationDays || 1} Day(s) • {booking.estimatedDistanceKm || 150} KM
+                  </span>
                 </div>
               </div>
             </div>
@@ -156,8 +161,11 @@ export const ConfirmationPage: React.FC = () => {
                 <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                   <Car className="w-6 h-6 text-red-600 shrink-0" />
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Vehicle</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Vehicle Rate</span>
                     <span className="font-bold text-slate-900">{booking.vehicle.name}</span>
+                    <span className="text-[11px] text-slate-500 block font-mono">
+                      ₹{booking.pricePerDay || booking.vehicle.pricePerDay}/day • ₹{booking.ratePerKm || booking.vehicle.pricePerKm}/km
+                    </span>
                   </div>
                 </div>
               )}
@@ -168,6 +176,9 @@ export const ConfirmationPage: React.FC = () => {
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Chauffeur</span>
                     <span className="font-bold text-slate-900">{booking.driver.name}</span>
+                    <span className="text-[11px] text-slate-500 block">
+                      ₹{booking.driver.dailyRate}/day duty allowance
+                    </span>
                   </div>
                 </div>
               )}
@@ -178,7 +189,7 @@ export const ConfirmationPage: React.FC = () => {
           <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-400 font-medium block">Total Paid / Payable</span>
-              <span className="text-xs text-emerald-600 font-semibold">Taxes & fees included</span>
+              <span className="text-xs text-emerald-600 font-semibold">Day + KM tariff & GST taxes included</span>
             </div>
             <span className="text-3xl font-black text-slate-900">
               ₹{booking.totalAmount.toLocaleString()}

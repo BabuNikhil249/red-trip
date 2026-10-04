@@ -7,11 +7,12 @@ import { VehicleCard } from '../components/booking/VehicleCard';
 import { FilterPanel } from '../components/booking/FilterPanel';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
-import { Key, ShieldAlert } from 'lucide-react';
+import { TripEstimatorBar } from '../components/booking/TripEstimatorBar';
+import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const SelfDrivePage: React.FC = () => {
   const navigate = useNavigate();
-  const { searchParams, setSearchParams, setSelectedVehicle, setSelectedDriver, setActiveBookingType } =
+  const { searchParams, setSearchParams, setSelectedVehicle, setActiveBookingType } =
     useBookingContext();
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -19,9 +20,7 @@ export const SelfDrivePage: React.FC = () => {
 
   useEffect(() => {
     setActiveBookingType('SELF_DRIVE');
-    setSelectedDriver(null);
     setLoading(true);
-
     bookingService
       .getSelfDriveVehicles(searchParams.vehicleCategory)
       .then((data) => {
@@ -33,39 +32,39 @@ export const SelfDrivePage: React.FC = () => {
 
   const handleSelectVehicle = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
-    setSelectedDriver(null);
     navigate('/booking/summary');
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 text-white rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
+      {/* Top Banner */}
+      <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm relative overflow-hidden border border-slate-200/90">
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/2 bg-cover bg-center opacity-15 hidden md:block pointer-events-none"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80')`,
+          }}
+        ></div>
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider border border-blue-400/30">
-            <Key className="w-4 h-4" /> Self Drive Fleet
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black uppercase tracking-widest border border-blue-200">
+            <ShieldCheck className="w-4 h-4 text-blue-600" /> Self-Drive Freedom
           </span>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Rent a Vehicle Without Driver</h1>
-          <p className="text-sm md:text-base text-slate-300">
-            Drive at your own pace with unlimited kilometers, 24/7 roadside breakdown protection, and clean sanitized cars.
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900">
+            Rent a Car Without Driver
+          </h1>
+          <p className="text-sm md:text-base text-slate-600 font-medium leading-relaxed">
+            Drive yourself with complete freedom. Zero hidden fees, doorstep vehicle drop & pickup, comprehensive insurance, and unlimited kilometer options.
           </p>
         </div>
       </div>
 
-      {/* License & Document Requirement Notice */}
-      <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200/80 flex items-start gap-4 text-amber-900 shadow-xs">
-        <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-          <ShieldAlert className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-          <h4 className="text-sm font-bold uppercase tracking-wider">Important Notice for Renters</h4>
-          <p className="text-xs text-amber-800 leading-relaxed font-medium">
-            Valid original Driving License (DL) and Government ID (Aadhaar / Passport) may be required before vehicle handover. Security deposit is 100% refundable upon vehicle return.
-          </p>
-        </div>
-      </div>
+      {/* Interactive Trip Date & Distance Estimator */}
+      <TripEstimatorBar
+        title="1. Select Rental Dates & Estimated Distance (KM)"
+        subtitle="Pick your pickup date in the calendar and duration to verify fleet availability & calculate your exact self-drive tariff."
+      />
 
-      {/* Main Listing Grid */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4 space-y-6">
           <FilterPanel
@@ -89,20 +88,25 @@ export const SelfDrivePage: React.FC = () => {
 
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">
-              Self Drive Cars Available ({vehicles.length})
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              Showing vehicles for {searchParams.pickupLocation || 'Bangalore'}
+            <div>
+              <h2 className="text-xl font-black text-slate-900">
+                Self-Drive Fleet ({vehicles.length})
+              </h2>
+              <p className="text-xs text-slate-500">
+                Cleaned, sanitized, and ready for your road trip
+              </p>
+            </div>
+            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> Free Cancellation
             </span>
           </div>
 
           {loading ? (
-            <LoadingSpinner label="Loading self-drive cars..." />
+            <LoadingSpinner label="Fetching self-drive cars..." />
           ) : vehicles.length === 0 ? (
             <EmptyState
-              title="No Vehicles Available"
-              message="No self-drive vehicles found for your current price filter."
+              title="No Self-Drive Cars Found"
+              message="No cars matched your current budget or category."
               actionText="Reset Filters"
               onAction={() =>
                 setSearchParams((prev) => ({
@@ -114,10 +118,10 @@ export const SelfDrivePage: React.FC = () => {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {vehicles.map((v) => (
+              {vehicles.map((vehicle) => (
                 <VehicleCard
-                  key={v.id}
-                  vehicle={v}
+                  key={vehicle.id}
+                  vehicle={vehicle}
                   isSelfDrive={true}
                   onSelect={handleSelectVehicle}
                 />

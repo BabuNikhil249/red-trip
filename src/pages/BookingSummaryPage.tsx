@@ -38,18 +38,33 @@ export const BookingSummaryPage: React.FC = () => {
   const pickupTime = selectedTrip?.departureTime || searchParams.pickupTime;
   const passengers = searchParams.passengers;
 
+  const totalDays = Math.max(1, searchParams.totalDays || 1);
+  const distanceKm = Math.max(10, searchParams.distanceKm || 150);
+
   let baseFare = 0;
   let driverCharge = 0;
   let securityDeposit = 0;
+  let ratePerKm = 0;
+  let pricePerDay = 0;
 
   if (activeBookingType === 'WITH_DRIVER' && selectedVehicle) {
-    baseFare = selectedVehicle.basePrice;
-    driverCharge = 500;
+    pricePerDay = selectedVehicle.pricePerDay || 2500;
+    ratePerKm = selectedVehicle.pricePerKm || 16;
+    const dayCost = pricePerDay * totalDays;
+    const kmCost = ratePerKm * distanceKm;
+    baseFare = dayCost + kmCost;
+    driverCharge = 500 * totalDays;
   } else if (activeBookingType === 'SELF_DRIVE' && selectedVehicle) {
-    baseFare = selectedVehicle.pricePerDay;
+    pricePerDay = selectedVehicle.pricePerDay || 2500;
+    ratePerKm = selectedVehicle.pricePerKm || 16;
+    const dayCost = pricePerDay * totalDays;
+    const kmCost = ratePerKm * distanceKm;
+    baseFare = dayCost + kmCost;
     securityDeposit = selectedVehicle.securityDeposit;
   } else if (activeBookingType === 'DRIVER_ONLY' && selectedDriver) {
-    baseFare = selectedDriver.hourlyRate * searchParams.durationHours;
+    pricePerDay = selectedDriver.dailyRate || 1200;
+    ratePerKm = 2;
+    baseFare = pricePerDay * totalDays + (distanceKm * 2);
   } else if (activeBookingType === 'AVAILABLE_TRIP' && selectedTrip) {
     baseFare = selectedTrip.pricePerPassenger * selectedSeatsCount;
   } else {
@@ -88,6 +103,10 @@ export const BookingSummaryPage: React.FC = () => {
         trip: selectedTrip || undefined,
         seatsBooked: selectedSeatsCount,
         durationHours: searchParams.durationHours,
+        durationDays: totalDays,
+        estimatedDistanceKm: distanceKm,
+        ratePerKm,
+        pricePerDay,
         baseFare,
         driverCharge: driverCharge > 0 ? driverCharge : undefined,
         securityDeposit: securityDeposit > 0 ? securityDeposit : undefined,
@@ -123,6 +142,7 @@ export const BookingSummaryPage: React.FC = () => {
         trip={selectedTrip}
         seatsBooked={selectedSeatsCount}
         durationHours={searchParams.durationHours}
+        durationDays={totalDays}
         customerInfo={customerInfo}
         onCustomerInfoChange={setCustomerInfo}
         onBack={() => navigate(-1)}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBookingContext } from '../context/BookingContext';
-import { Car, Mail, Lock, ShieldAlert, Building2, UserCheck, ArrowRight } from 'lucide-react';
+import { agencyDriverService } from '../services/agencyDriverService';
+import { Car, Mail, Lock, Phone, ShieldAlert, Building2, UserCheck, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,8 +11,10 @@ export const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'USER' | 'AGENCY' | 'DRIVER' | 'ADMIN'>('USER');
   const [email, setEmail] = useState('rajesh.sharma@example.com');
   const [password, setPassword] = useState('password123');
+  const [driverPhone, setDriverPhone] = useState('+91 98123 45678');
+  const [driverLoginLoading, setDriverLoginLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (activeTab === 'ADMIN') {
       loginAsAdmin();
@@ -22,9 +25,24 @@ export const LoginPage: React.FC = () => {
       addToast('Logged in as Agency (M/S Apoorva)!', 'success');
       navigate('/agency');
     } else if (activeTab === 'DRIVER') {
-      loginAsDriver('Vikas U', '+91 98123 45678', 'KA 05 AM 2969');
-      addToast('Logged in as Cab Driver (Vikas U)!', 'success');
-      navigate('/driver');
+      setDriverLoginLoading(true);
+      try {
+        const driverInfo = await agencyDriverService.getDriverByPhone(driverPhone);
+        if (driverInfo) {
+          loginAsDriver(driverInfo.name, driverInfo.phone, driverInfo.cabNo);
+          addToast(`Logged in as Driver ${driverInfo.name}! (Matched from trip ${driverInfo.bookingId})`, 'success');
+          navigate('/driver');
+        } else {
+          // Fallback: still allow login with default driver for demo
+          loginAsDriver('Driver', driverPhone, 'N/A');
+          addToast('Logged in as Driver (no assigned trips found for this number).', 'info');
+          navigate('/driver');
+        }
+      } catch (err) {
+        addToast('Failed to verify driver phone number', 'error');
+      } finally {
+        setDriverLoginLoading(false);
+      }
     } else {
       loginAsUser(email.split('@')[0].replace('.', ' '), email, '+91 98765 43210');
       addToast('Logged in successfully!', 'success');
@@ -152,40 +170,67 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Email Address
-            </label>
-            <div className="relative flex items-center">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
+          {activeTab === 'DRIVER' ? (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Driver Contact Number
+                </label>
+                <p className="text-[11px] text-slate-500 mb-2">
+                  Enter the phone number assigned to you by the agency during trip creation.
+                </p>
+                <div className="relative flex items-center">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5" />
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. +91 98123 45678"
+                    value={driverPhone}
+                    onChange={(e) => setDriverPhone(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Email Address
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Password
-            </label>
-            <div className="relative flex items-center">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Password
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <button
             type="submit"
+            disabled={activeTab === 'DRIVER' && driverLoginLoading}
             className={`w-full py-3.5 font-bold rounded-xl transition-all shadow-md active:scale-95 text-white flex items-center justify-center gap-2 ${
               activeTab === 'ADMIN'
                 ? 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/30'
@@ -194,14 +239,16 @@ export const LoginPage: React.FC = () => {
                 : activeTab === 'DRIVER'
                 ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-amber-500/30'
                 : 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
-            }`}
+            } ${activeTab === 'DRIVER' && driverLoginLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            {activeTab === 'ADMIN'
+            {activeTab === 'DRIVER' && driverLoginLoading
+              ? 'Verifying Phone Number...'
+              : activeTab === 'ADMIN'
               ? 'Sign In as Administrator'
               : activeTab === 'AGENCY'
               ? 'Sign In to Agency Portal'
               : activeTab === 'DRIVER'
-              ? 'Sign In to Driver Portal'
+              ? 'Login with Phone Number'
               : 'Sign In'}
             <ArrowRight className="w-4 h-4" />
           </button>

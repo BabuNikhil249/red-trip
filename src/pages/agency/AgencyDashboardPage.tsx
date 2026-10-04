@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Ban,
   Clock,
+  UserCheck,
 } from 'lucide-react';
 
 interface DynamicPickupInput {
@@ -108,6 +109,14 @@ export const AgencyDashboardPage: React.FC = () => {
   const [dropLocationInput, setDropLocationInput] = useState(
     'SAIACS CEO Centre (Kyalasanahalli, Bengaluru, Karnataka 560077)'
   );
+  // Vehicle Details
+  const [vehicleNumberInput, setVehicleNumberInput] = useState('KA 05 AM 2969');
+  const [vehicleModelInput, setVehicleModelInput] = useState('2.4 VX 7 STR (2024)');
+  const [vehicleColorInput, setVehicleColorInput] = useState('White');
+  // Driver Details
+  const [driverNameInput, setDriverNameInput] = useState('Vikas U');
+  const [driverPhoneInput, setDriverPhoneInput] = useState('+91 98123 45678');
+  const [driverLicenseInput, setDriverLicenseInput] = useState('KA05-20180012345');
   const [dynamicPickups, setDynamicPickups] = useState<DynamicPickupInput[]>([
     {
       location: 'Bangalore Airport (Terminal 1 Gate 4 Arrival)',
@@ -197,6 +206,12 @@ export const AgencyDashboardPage: React.FC = () => {
     setVehicleTypeInput('Toyota Innova Crysta');
     setTravelDateInput('2026-06-14');
     setDropLocationInput('SAIACS CEO Centre (Kyalasanahalli, Bengaluru, Karnataka 560077)');
+    setVehicleNumberInput('KA 05 AM 2969');
+    setVehicleModelInput('2.4 VX 7 STR (2024)');
+    setVehicleColorInput('White');
+    setDriverNameInput('Vikas U');
+    setDriverPhoneInput('+91 98123 45678');
+    setDriverLicenseInput('KA05-20180012345');
     setDynamicPickups([
       {
         location: 'Bangalore Airport (Terminal 1 Gate 4 Arrival)',
@@ -238,6 +253,12 @@ export const AgencyDashboardPage: React.FC = () => {
         pickupPointsInput: dynamicPickups,
         dropLocation: dropLocationInput,
         vehicleTypeRequested: vehicleTypeInput,
+        vehicleNumber: vehicleNumberInput,
+        vehicleModel: vehicleModelInput,
+        vehicleColor: vehicleColorInput,
+        driverName: driverNameInput,
+        driverPhone: driverPhoneInput,
+        driverLicense: driverLicenseInput,
       });
 
       addToast(`Trip ${created.id} created with ${created.pickupPoints.length} OTP pickup points!`, 'success');
@@ -589,6 +610,36 @@ export const AgencyDashboardPage: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Vehicle & Driver Details */}
+                    {(booking.vehicleNumber || booking.vehicleModel || booking.vehicleColor) && (
+                      <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-bold">
+                        {booking.vehicleNumber && (
+                          <div>
+                            <span className="text-[10px] text-blue-500 uppercase block">Reg. Number</span>
+                            <span className="text-slate-900 font-mono">{booking.vehicleNumber}</span>
+                          </div>
+                        )}
+                        {booking.vehicleModel && (
+                          <div>
+                            <span className="text-[10px] text-blue-500 uppercase block">Model</span>
+                            <span className="text-slate-900">{booking.vehicleModel}</span>
+                          </div>
+                        )}
+                        {booking.vehicleColor && (
+                          <div>
+                            <span className="text-[10px] text-blue-500 uppercase block">Color</span>
+                            <span className="text-slate-900">{booking.vehicleColor}</span>
+                          </div>
+                        )}
+                        {booking.assignedDriverLicense && (
+                          <div>
+                            <span className="text-[10px] text-blue-500 uppercase block">License No</span>
+                            <span className="text-slate-900 font-mono">{booking.assignedDriverLicense}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Google Map Viewer Section */}
                     <div className="space-y-2">
                       <button
@@ -904,6 +955,108 @@ export const AgencyDashboardPage: React.FC = () => {
                     onChange={(e) => setTravelDateInput(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-red-500"
                   />
+                </div>
+              </div>
+
+              {/* VEHICLE DETAILS SECTION */}
+              <div className="bg-blue-50/60 p-5 rounded-2xl border-2 border-blue-200 space-y-4">
+                <span className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                  <Car className="w-4 h-4 text-blue-600" /> VEHICLE DETAILS
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      VEHICLE NUMBER *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. KA 05 AM 2969"
+                      value={vehicleNumberInput}
+                      onChange={(e) => setVehicleNumberInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-blue-300 rounded-xl font-mono font-bold text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      VEHICLE MODEL
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2.4 VX 7 STR (2024)"
+                      value={vehicleModelInput}
+                      onChange={(e) => setVehicleModelInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-blue-300 rounded-xl font-semibold text-sm text-slate-900 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      VEHICLE COLOR
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. White"
+                      value={vehicleColorInput}
+                      onChange={(e) => setVehicleColorInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-blue-300 rounded-xl font-semibold text-sm text-slate-900 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* DRIVER DETAILS SECTION */}
+              <div className="bg-amber-50/60 p-5 rounded-2xl border-2 border-amber-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-amber-600" /> DRIVER / CHAUFFEUR DETAILS
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+                    Driver can login with this contact number
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      DRIVER NAME *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Vikas U"
+                      value={driverNameInput}
+                      onChange={(e) => setDriverNameInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl font-bold text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      DRIVER CONTACT NUMBER *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +91 98123 45678"
+                      value={driverPhoneInput}
+                      onChange={(e) => setDriverPhoneInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl font-mono font-bold text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                      DRIVER LICENSE NO
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. KA05-20180012345"
+                      value={driverLicenseInput}
+                      onChange={(e) => setDriverLicenseInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl font-mono font-semibold text-sm text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+                <div className="bg-amber-100/80 p-3 rounded-xl border border-amber-300 text-[11px] text-amber-900 font-bold flex items-center gap-2">
+                  <KeyRound className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  The driver assigned here will receive trip orders in their Driver Portal. They can login at the Login page using the contact number entered above.
                 </div>
               </div>
 

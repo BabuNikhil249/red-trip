@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBookingContext } from '../../context/BookingContext';
 import { LocationInput } from './LocationInput';
-import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
+import { Calendar, Users, ArrowRight } from 'lucide-react';
 import type { TripTypeOption, VehicleCategory } from '../../types';
 
 export const BookingForm: React.FC = () => {
@@ -50,7 +50,7 @@ export const BookingForm: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Travel Date
@@ -62,29 +62,49 @@ export const BookingForm: React.FC = () => {
                   value={searchParams.travelDate}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setSearchParams((prev) => ({ ...prev, travelDate: e.target.value }))}
-                  className="w-full pl-11 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+                  className="w-full pl-11 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all cursor-pointer"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Pickup Time
+                Duration (Days)
+              </label>
+              <select
+                value={searchParams.totalDays || 1}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({ ...prev, totalDays: parseInt(e.target.value) || 1 }))
+                }
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+              >
+                <option value={1}>1 Day (Single Day)</option>
+                <option value={2}>2 Days (Weekend Trip)</option>
+                <option value={3}>3 Days (Long Weekend)</option>
+                <option value={5}>5 Days (Holiday Tour)</option>
+                <option value={7}>7 Days (Week Package)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Est. Distance (KM)
               </label>
               <div className="relative flex items-center">
-                <Clock className="w-5 h-5 text-slate-400 absolute left-3.5 pointer-events-none" />
-                <select
-                  value={searchParams.pickupTime}
-                  onChange={(e) => setSearchParams((prev) => ({ ...prev, pickupTime: e.target.value }))}
-                  className="w-full pl-11 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all appearance-none"
-                >
-                  <option value="06:00 AM">06:00 AM</option>
-                  <option value="08:00 AM">08:00 AM</option>
-                  <option value="10:00 AM">10:00 AM</option>
-                  <option value="02:00 PM">02:00 PM</option>
-                  <option value="06:00 PM">06:00 PM</option>
-                  <option value="10:00 PM">10:00 PM</option>
-                </select>
+                <input
+                  type="number"
+                  min={20}
+                  max={2500}
+                  step={10}
+                  value={searchParams.distanceKm || 150}
+                  onChange={(e) =>
+                    setSearchParams((prev) => ({ ...prev, distanceKm: parseInt(e.target.value) || 50 }))
+                  }
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+                />
+                <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">
+                  KM
+                </span>
               </div>
             </div>
 

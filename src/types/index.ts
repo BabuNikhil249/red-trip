@@ -144,6 +144,12 @@ export interface AgencyBooking {
   pickup2?: string;
   dropLocation: string;
   vehicleTypeRequested: string;
+  // Vehicle Details (added by agency during trip creation)
+  vehicleNumber?: string;
+  vehicleModel?: string;
+  vehicleColor?: string;
+  // Assigned Driver Details (added by agency during trip creation)
+  assignedDriverLicense?: string;
   assignedCabNo?: string;
   assignedDriverId?: string;
   assignedDriverName?: string;
@@ -298,6 +304,8 @@ export interface Booking {
   baseFare: number;
   driverCharge?: number;
   securityDeposit?: number;
+  ratePerKm?: number;
+  pricePerDay?: number;
   taxAmount: number;
   discount: number;
   totalAmount: number;
@@ -319,6 +327,8 @@ export interface SearchFilterState {
   durationHours: number;
   vehicleCategory: VehicleCategory | 'All';
   priceMax: number;
+  distanceKm: number;
+  totalDays: number;
 }
 
 export interface AppNotification {
